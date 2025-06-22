@@ -2,46 +2,6 @@
   "sortedMiddleware": [],
   "middleware": {},
   "functions": {
-    "/api/faq/route": {
-      "files": [
-        "server/middleware-build-manifest.js",
-        "server/middleware-react-loadable-manifest.js",
-        "server/next-font-manifest.js",
-        "prerender-manifest.js",
-        "server/edge-runtime-webpack.js",
-        "server/app/api/faq/route.js"
-      ],
-      "name": "app/api/faq/route",
-      "page": "/api/faq/route",
-      "matchers": [
-        {
-          "regexp": "^/api/faq$",
-          "originalSource": "/api/faq"
-        }
-      ],
-      "wasm": [],
-      "assets": []
-    },
-    "/api/contact/route": {
-      "files": [
-        "server/middleware-build-manifest.js",
-        "server/middleware-react-loadable-manifest.js",
-        "server/next-font-manifest.js",
-        "prerender-manifest.js",
-        "server/edge-runtime-webpack.js",
-        "server/app/api/contact/route.js"
-      ],
-      "name": "app/api/contact/route",
-      "page": "/api/contact/route",
-      "matchers": [
-        {
-          "regexp": "^/api/contact$",
-          "originalSource": "/api/contact"
-        }
-      ],
-      "wasm": [],
-      "assets": []
-    },
     "/api/admin-sync/route": {
       "files": [
         "server/middleware-build-manifest.js",
@@ -82,41 +42,21 @@
       "wasm": [],
       "assets": []
     },
-    "/api/upload-r2/route": {
+    "/api/contact/route": {
       "files": [
         "server/middleware-build-manifest.js",
         "server/middleware-react-loadable-manifest.js",
         "server/next-font-manifest.js",
         "prerender-manifest.js",
         "server/edge-runtime-webpack.js",
-        "server/app/api/upload-r2/route.js"
+        "server/app/api/contact/route.js"
       ],
-      "name": "app/api/upload-r2/route",
-      "page": "/api/upload-r2/route",
+      "name": "app/api/contact/route",
+      "page": "/api/contact/route",
       "matchers": [
         {
-          "regexp": "^/api/upload\\-r2$",
-          "originalSource": "/api/upload-r2"
-        }
-      ],
-      "wasm": [],
-      "assets": []
-    },
-    "/api/products/route": {
-      "files": [
-        "server/middleware-build-manifest.js",
-        "server/middleware-react-loadable-manifest.js",
-        "server/next-font-manifest.js",
-        "prerender-manifest.js",
-        "server/edge-runtime-webpack.js",
-        "server/app/api/products/route.js"
-      ],
-      "name": "app/api/products/route",
-      "page": "/api/products/route",
-      "matchers": [
-        {
-          "regexp": "^/api/products$",
-          "originalSource": "/api/products"
+          "regexp": "^/api/contact$",
+          "originalSource": "/api/contact"
         }
       ],
       "wasm": [],
@@ -142,6 +82,46 @@
       "wasm": [],
       "assets": []
     },
+    "/api/faq/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "prerender-manifest.js",
+        "server/edge-runtime-webpack.js",
+        "server/app/api/faq/route.js"
+      ],
+      "name": "app/api/faq/route",
+      "page": "/api/faq/route",
+      "matchers": [
+        {
+          "regexp": "^/api/faq$",
+          "originalSource": "/api/faq"
+        }
+      ],
+      "wasm": [],
+      "assets": []
+    },
+    "/api/upload-r2/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "prerender-manifest.js",
+        "server/edge-runtime-webpack.js",
+        "server/app/api/upload-r2/route.js"
+      ],
+      "name": "app/api/upload-r2/route",
+      "page": "/api/upload-r2/route",
+      "matchers": [
+        {
+          "regexp": "^/api/upload\\-r2$",
+          "originalSource": "/api/upload-r2"
+        }
+      ],
+      "wasm": [],
+      "assets": []
+    },
     "/api/testimonials/route": {
       "files": [
         "server/middleware-build-manifest.js",
@@ -157,6 +137,26 @@
         {
           "regexp": "^/api/testimonials$",
           "originalSource": "/api/testimonials"
+        }
+      ],
+      "wasm": [],
+      "assets": []
+    },
+    "/api/products/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "prerender-manifest.js",
+        "server/edge-runtime-webpack.js",
+        "server/app/api/products/route.js"
+      ],
+      "name": "app/api/products/route",
+      "page": "/api/products/route",
+      "matchers": [
+        {
+          "regexp": "^/api/products$",
+          "originalSource": "/api/products"
         }
       ],
       "wasm": [],

@@ -1,4 +1,4 @@
-// File: /Users/celalbasaran/Desktop/Ozmevsimsite/src/app/kullanim-sartlari/page.tsx
+// File: /app/src/app/kullanim-sartlari/page.tsx
 import * as entry from '../../../../src/app/kullanim-sartlari/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -1,4 +1,4 @@
-// File: /Users/celalbasaran/Desktop/Ozmevsimsite/src/app/admin/settings/seo/page.tsx
+// File: /app/src/app/admin/settings/seo/page.tsx
 import * as entry from '../../../../../../src/app/admin/settings/seo/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

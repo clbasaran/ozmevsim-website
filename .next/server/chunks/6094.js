@@ -1,4 +1,4 @@
-"use strict";exports.id=6094,exports.ids=[6094,1459,7951,5287,9045,4292,5747],exports.modules={9224:(e,t,r)=>{r.d(t,{Z:()=>a});var n=r(3729),l={xmlns:"http://www.w3.org/2000/svg",width:24,height:24,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"};/**
+"use strict";exports.id=6094,exports.ids=[6094,7951,5287,1459,9045,4292,5747],exports.modules={9224:(e,t,r)=>{r.d(t,{Z:()=>a});var n=r(3729),l={xmlns:"http://www.w3.org/2000/svg",width:24,height:24,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"};/**
  * @license lucide-react v0.300.0 - ISC
  *
  * This source code is licensed under the ISC license.

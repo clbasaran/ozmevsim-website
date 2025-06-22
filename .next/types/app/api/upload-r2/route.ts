@@ -1,4 +1,4 @@
-// File: /Users/celalbasaran/Desktop/Ozmevsimsite/src/app/api/upload-r2/route.ts
+// File: /app/src/app/api/upload-r2/route.ts
 import * as entry from '../../../../../src/app/api/upload-r2/route.js'
 import type { NextRequest } from 'next/server.js'
 

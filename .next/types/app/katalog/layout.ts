@@ -1,4 +1,4 @@
-// File: /Users/celalbasaran/Desktop/Ozmevsimsite/src/app/katalog/layout.tsx
+// File: /app/src/app/katalog/layout.tsx
 import * as entry from '../../../../src/app/katalog/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
