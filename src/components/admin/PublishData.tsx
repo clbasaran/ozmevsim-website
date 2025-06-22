@@ -157,7 +157,6 @@ export default function PublishData() {
       setTimeout(() => window.location.reload(), 1000);
     }
   };
-  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
