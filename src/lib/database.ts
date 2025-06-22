@@ -415,6 +415,17 @@ export class DatabaseService {
 
 // Helper function to get database instance
 export function getDatabase(): D1Database | null {
+  // Development'ta önce setup yap
+  if (process.env.NODE_ENV !== 'production') {
+    setupDatabaseBinding();
+  }
+  
+  // API route'larda kullanım için
+  const apiDb = getApiDatabase();
+  if (apiDb) {
+    return apiDb;
+  }
+  
   // Try different binding names
   if (typeof globalThis !== 'undefined' && globalThis.ozmevsim_d1) {
     return globalThis.ozmevsim_d1;
@@ -428,7 +439,14 @@ export function getDatabase(): D1Database | null {
     return process.env.ozmevsim_d1 as any;
   }
   
-  console.warn('Database not available. Make sure you are running with wrangler pages dev or have D1 properly configured.');
+  console.warn('Database not available. Using mock database for development.');
+  
+  // Development fallback - setup mock
+  if (process.env.NODE_ENV !== 'production') {
+    setupDatabaseBinding();
+    return globalThis.ozmevsim_d1 || null;
+  }
+  
   return null;
 }
 
