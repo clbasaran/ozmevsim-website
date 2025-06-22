@@ -36,6 +36,7 @@ interface D1ExecResult {
 // Extend globalThis interface for D1
 declare global {
   var DB: D1Database | undefined;
+  var ozmevsim_d1: D1Database | undefined;
 }
 
 // Database işlemleri için wrapper class
