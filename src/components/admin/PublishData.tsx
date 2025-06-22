@@ -96,6 +96,50 @@ export default function PublishData() {
     setResult('Veriler console\'da gösterildi. F12 ile developer tools\'u açın.');
   };
 
+  const handleImportData = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    fileInput.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      try {
+        const text = await file.text();
+        const importData = JSON.parse(text);
+        
+        // Verify this is an Özmevsim backup
+        if (!importData._metadata || !importData._metadata.site?.includes('ozmevsim')) {
+          if (!confirm('Bu dosya Öz Mevsim backup dosyası değil gibi görünüyor. Devam etmek istediğinizden emin misiniz?')) {
+            return;
+          }
+        }
+        
+        let importCount = 0;
+        
+        // Import each localStorage key
+        Object.entries(importData).forEach(([key, value]) => {
+          if (key.startsWith('ozmevsim_') && key !== '_metadata') {
+            localStorage.setItem(key, JSON.stringify(value));
+            importCount++;
+          }
+        });
+        
+        setResult(`✅ ${importCount} adet veri başarıyla import edildi! Sayfa yenilenecek...`);
+        
+        // Refresh page after 2 seconds
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+        
+      } catch (error: any) {
+        setError(`❌ Import hatası: ${error.message}`);
+      }
+    };
+    
+    fileInput.click();
+  };
+
   const handleClearAll = () => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
