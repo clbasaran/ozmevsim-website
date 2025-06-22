@@ -1,6 +1,8 @@
 // Cloudflare D1 Database Wrapper
 // Öz Mevsim Website için database işlemleri
 
+import { setupDatabaseBinding, getApiDatabase } from './database-setup';
+
 interface D1Database {
   prepare(sql: string): D1PreparedStatement;
   dump(): Promise<ArrayBuffer>;
