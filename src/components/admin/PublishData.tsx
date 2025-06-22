@@ -96,7 +96,7 @@ export default function PublishData() {
     setResult('Veriler console\'da gösterildi. F12 ile developer tools\'u açın.');
   };
 
-  const handleImportData = () => {
+  const handleClearAll = () => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.json';
