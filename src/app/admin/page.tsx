@@ -625,6 +625,9 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* Migration Panel - DATABASE SYNC */}
+      <MigrationPanel />
+
       {/* Publish Data Component */}
       <PublishData />
 
