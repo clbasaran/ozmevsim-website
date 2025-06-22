@@ -184,8 +184,8 @@ const MigrationPanel = () => {
                   <div key={key} className="flex justify-between text-sm">
                     <span className="text-green-700">{key}</span>
                     <span className="text-green-600 font-medium">
-                      {value?.success ? 
-                        `${value.data?.length || 0} item` : 
+                      {(value as any)?.success ? 
+                        `${(value as any).data?.length || 0} item` : 
                         '❌ Hata'
                       }
                     </span>
