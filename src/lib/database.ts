@@ -413,9 +413,20 @@ export class DatabaseService {
 
 // Helper function to get database instance
 export function getDatabase(): D1Database | null {
+  // Try different binding names
+  if (typeof globalThis !== 'undefined' && globalThis.ozmevsim_d1) {
+    return globalThis.ozmevsim_d1;
+  }
   if (typeof globalThis !== 'undefined' && globalThis.DB) {
     return globalThis.DB;
   }
+  
+  // For development with wrangler pages dev
+  if (typeof process !== 'undefined' && process.env?.ozmevsim_d1) {
+    return process.env.ozmevsim_d1 as any;
+  }
+  
+  console.warn('Database not available. Make sure you are running with wrangler pages dev or have D1 properly configured.');
   return null;
 }
 
