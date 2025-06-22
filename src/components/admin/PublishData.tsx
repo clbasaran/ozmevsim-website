@@ -213,7 +213,7 @@ export default function PublishData() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <button
             onClick={handleShowData}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
@@ -242,7 +242,14 @@ export default function PublishData() {
             disabled={isPublishing}
             className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50 transition-colors"
           >
-            {isPublishing ? '⏳ Export ediliyor...' : '📤 Ham Export'}
+            {isPublishing ? '⏳ Export ediliyor...' : '📤 Full Export'}
+          </button>
+
+          <button
+            onClick={handleImportData}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+          >
+            📥 Import Data
           </button>
 
           <button
