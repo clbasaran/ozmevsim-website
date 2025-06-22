@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import PublishData from '@/components/admin/PublishData';
+import MigrationPanel from '@/components/admin/MigrationPanel';
 import {
   HomeIcon,
   UserGroupIcon,
