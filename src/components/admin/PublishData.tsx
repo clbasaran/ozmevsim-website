@@ -33,6 +33,14 @@ export default function PublishData() {
         }
       }
 
+      // Add metadata
+      exportData._metadata = {
+        exportDate: new Date().toISOString(),
+        version: '1.0',
+        site: 'ozmevsim.com',
+        description: 'Öz Mevsim Website Database Export'
+      };
+
       // Create downloadable JSON file
       const dataStr = JSON.stringify(exportData, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -41,12 +49,32 @@ export default function PublishData() {
       // Download file
       const link = document.createElement('a');
       link.href = url;
-      link.download = `ozmevsim-data-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `ozmevsim-database-backup-${new Date().toISOString().split('T')[0]}.json`;
       link.click();
       
       URL.revokeObjectURL(url);
       
-      setResult(`✅ Veriler export edildi! Dosyayı indirip geliştirici ile paylaşın.`);
+      // Also save to KV for real-time sync
+      try {
+        const response = await fetch('/api/data-kv', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            key: 'ozmevsim_full_backup',
+            data: exportData
+          })
+        });
+        
+        if (response.ok) {
+          setResult(`✅ Veriler export edildi ve cloud'a yedeklendi! Dosyayı da indirdiniz.`);
+        } else {
+          setResult(`✅ Veriler export edildi! Cloud yedekleme başarısız oldu ama dosyayı indirdiniz.`);
+        }
+      } catch (cloudError) {
+        setResult(`✅ Veriler export edildi! Cloud yedekleme mevcut değil ama dosyayı indirdiniz.`);
+      }
       
     } catch (error: any) {
       setError(`❌ Export hatası: ${error.message}`);
