@@ -43,73 +43,8 @@ interface Category {
 }
 
 export default function AdminFAQPage() {
-  const [faqs, setFaqs] = useState<FAQ[]>([
-    {
-      id: '1',
-      question: 'Kombi montajı ne kadar sürer?',
-      answer: 'Standart bir kombi montajı genellikle 2-4 saat arasında tamamlanır. Bu süre, montaj yerinin hazırlık durumu, boru çekimi gerekliliği ve kombi tipine göre değişiklik gösterebilir.',
-      category: 'Montaj',
-      keywords: ['kombi', 'montaj', 'süre', 'kurulum'],
-      order: 1,
-      isActive: true,
-      isPopular: true,
-      viewCount: 156,
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-20'
-    },
-    {
-      id: '2',
-      question: 'Kombi bakımı ne sıklıkla yapılmalı?',
-      answer: 'Kombinizin verimli çalışması ve uzun ömürlü olması için yılda en az bir kez profesyonel bakım yaptırmanız önerilir. Yoğun kullanım durumunda 6 ayda bir bakım yapılabilir.',
-      category: 'Bakım',
-      keywords: ['bakım', 'kombi', 'periyot', 'verimlilik'],
-      order: 2,
-      isActive: true,
-      isPopular: true,
-      viewCount: 134,
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-18'
-    },
-    {
-      id: '3',
-      question: 'Hangi kombi markası daha iyi?',
-      answer: 'Vaillant, Bosch, Demirdöküm, Buderus gibi markalar kalite ve güvenilirlik açısından öne çıkar. Marka seçimi, bütçeniz, evinizin büyüklüğü ve ısıtma ihtiyacınıza göre değişir.',
-      category: 'Ürün Seçimi',
-      keywords: ['marka', 'seçim', 'kalite', 'vaillant', 'bosch'],
-      order: 3,
-      isActive: true,
-      isPopular: false,
-      viewCount: 89,
-      createdAt: '2024-01-16',
-      updatedAt: '2024-01-16'
-    },
-    {
-      id: '4',
-      question: 'Kombi arızaları için garanti süresi nedir?',
-      answer: 'Yeni kombi satışlarında 2 yıl üretici garantisi, montaj işçiliğinde 1 yıl garanti sunuyoruz. Bakım ve onarım hizmetlerimizde ise 6 ay işçilik garantisi veriyoruz.',
-      category: 'Garanti',
-      keywords: ['garanti', 'arıza', 'süre', 'işçilik'],
-      order: 4,
-      isActive: true,
-      isPopular: false,
-      viewCount: 67,
-      createdAt: '2024-01-17',
-      updatedAt: '2024-01-17'
-    },
-    {
-      id: '5',
-      question: 'Acil durumlarda hizmet veriyor musunuz?',
-      answer: 'Evet, 7/24 acil servis hizmeti sunuyoruz. Kombi arızaları, su kaçakları ve ısıtma sistemlerindeki acil durumlar için hızlı müdahale ekibimiz mevcuttur.',
-      category: 'Hizmet',
-      keywords: ['acil', 'servis', '7/24', 'arıza'],
-      order: 5,
-      isActive: true,
-      isPopular: true,
-      viewCount: 198,
-      createdAt: '2024-01-18',
-      updatedAt: '2024-01-19'
-    }
-  ]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [categories, setCategories] = useState<Category[]>([
     { id: '1', name: 'Montaj', color: 'bg-blue-100 text-blue-800', icon: '🔧' },
@@ -133,34 +68,29 @@ export default function AdminFAQPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
 
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
+  // Load FAQs from D1 API
+  const loadFAQsFromAPI = async () => {
     try {
-      const savedFaqs = localStorage.getItem('ozmevsim_faqs');
-      const savedCategories = localStorage.getItem('ozmevsim_faq_categories');
-      
-      if (savedFaqs) {
-        setFaqs(JSON.parse(savedFaqs));
-      }
-      if (savedCategories) {
-        setCategories(JSON.parse(savedCategories));
+      setIsLoading(true);
+      const response = await fetch('/api/faq');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setFaqs(result.data);
+        }
       }
     } catch (error) {
-      console.error('Error loading FAQ data:', error);
+      console.error('Failed to load FAQs:', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadFAQsFromAPI();
   }, []);
 
-  // Save data to localStorage whenever faqs change
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem('ozmevsim_faqs', JSON.stringify(faqs));
-    } catch (error) {
-      console.error('Error saving FAQs:', error);
-    }
-  }, [faqs]);
+
 
   // Filter and search FAQs
   const filteredFaqs = faqs.filter(faq => {
@@ -231,30 +161,84 @@ export default function AdminFAQPage() {
     setIsEditing(true);
   };
 
-  const handleSaveFaq = () => {
+  const handleSaveFaq = async () => {
     if (!selectedFaq) return;
 
-    const updatedFaq = {
-      ...selectedFaq,
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
-
-    if (isCreating) {
-      setFaqs(prev => [...prev, updatedFaq]);
-    } else {
-      setFaqs(prev => prev.map(f => f.id === selectedFaq.id ? updatedFaq : f));
+    // Validation
+    if (!selectedFaq.question || !selectedFaq.answer) {
+      alert('❌ Soru ve cevap alanları zorunludur!');
+      return;
     }
 
-    setSelectedFaq(null);
-    setIsEditing(false);
-    setIsCreating(false);
-    alert('SSS başarıyla kaydedildi!');
+    if (!selectedFaq.category) {
+      alert('❌ Kategori seçimi zorunludur!');
+      return;
+    }
+
+    try {
+      const apiData = {
+        question: selectedFaq.question,
+        answer: selectedFaq.answer,
+        category: selectedFaq.category,
+        order: selectedFaq.order,
+        status: selectedFaq.isActive ? 'published' : 'draft'
+      };
+
+      const response = await fetch('/api/faq', {
+        method: isCreating ? 'POST' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(isCreating ? apiData : { ...apiData, id: selectedFaq.id })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ FAQ saved to D1:', result);
+
+      const updatedFaq = {
+        ...selectedFaq,
+        updatedAt: new Date().toISOString().split('T')[0]
+      };
+
+      // Update local state
+      if (isCreating) {
+        setFaqs(prev => [...prev, { ...updatedFaq, id: result.data?.id || selectedFaq.id }]);
+      } else {
+        setFaqs(prev => prev.map(f => f.id === selectedFaq.id ? updatedFaq : f));
+      }
+
+      setSelectedFaq(null);
+      setIsEditing(false);
+      setIsCreating(false);
+      alert('✅ SSS başarıyla kaydedildi!');
+    } catch (error) {
+      console.error('❌ FAQ save error:', error);
+      alert('❌ SSS kaydedilirken hata oluştu!');
+    }
   };
 
-  const handleDeleteFaq = (id: string) => {
+  const handleDeleteFaq = async (id: string) => {
     if (confirm('Bu soruyu silmek istediğinizden emin misiniz?')) {
-      setFaqs(prev => prev.filter(f => f.id !== id));
-      alert('SSS başarıyla silindi!');
+      try {
+        const response = await fetch(`/api/faq?id=${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+
+        // Update local state
+        setFaqs(prev => prev.filter(f => f.id !== id));
+        alert('✅ SSS başarıyla silindi!');
+      } catch (error) {
+        console.error('❌ FAQ delete error:', error);
+        alert('❌ SSS silinirken hata oluştu!');
+      }
     }
   };
 
@@ -321,6 +305,19 @@ export default function AdminFAQPage() {
     const category = categories.find(cat => cat.name === categoryName);
     return category ? category.icon : '❓';
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">SSS soruları yükleniyor...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

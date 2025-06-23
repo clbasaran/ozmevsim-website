@@ -14,9 +14,34 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     const status = searchParams.get('status') || 'active';
 
-    // Fetch products from D1
+    // If ID is provided, fetch single product
+    if (id) {
+      const product = await dbService.getProduct(parseInt(id));
+      
+      if (!product) {
+        return NextResponse.json(
+          { error: 'Product not found' },
+          { status: 404 }
+        );
+      }
+
+      // Parse JSON fields for single product
+      const processedProduct = {
+        ...product,
+        features: typeof product.features === 'string' ? JSON.parse(product.features) : product.features,
+        specifications: typeof product.specifications === 'string' ? JSON.parse(product.specifications) : product.specifications,
+      };
+
+      return NextResponse.json({
+        success: true,
+        data: processedProduct
+      });
+    }
+
+    // Fetch all products from D1
     const products = await dbService.getProducts(status);
 
     // Parse JSON fields

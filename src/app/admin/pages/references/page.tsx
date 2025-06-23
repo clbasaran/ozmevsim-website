@@ -125,23 +125,9 @@ export default function AdminReferencesPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load data from localStorage
+  // Load default data
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const storedReferences = localStorage.getItem('ozmevsim_references');
-      if (storedReferences) {
-        const parsedReferences = JSON.parse(storedReferences);
-        setReferences(parsedReferences);
-      } else {
-        setReferences(defaultReferences);
-        localStorage.setItem('ozmevsim_references', JSON.stringify(defaultReferences));
-      }
-    } catch (error) {
-      console.error('Error loading references data:', error);
-      setReferences(defaultReferences);
-    }
+    setReferences(defaultReferences);
   }, []);
 
   // Filter and search logic
@@ -189,9 +175,7 @@ export default function AdminReferencesPage() {
     setCategories(updatedCategories);
   }, [references]);
 
-  const saveToLocalStorage = (data: Reference[]) => {
-    localStorage.setItem('ozmevsim_references', JSON.stringify(data));
-  };
+
 
   const handleCreateReference = () => {
     setSelectedReference({
@@ -237,7 +221,6 @@ export default function AdminReferencesPage() {
       }
       
       setReferences(updatedReferences);
-      saveToLocalStorage(updatedReferences);
       setShowForm(false);
       setSelectedReference(null);
       setIsLoading(false);
@@ -248,7 +231,6 @@ export default function AdminReferencesPage() {
     if (confirm('Bu referansı silmek istediğinizden emin misiniz?')) {
       const updatedReferences = references.filter(ref => ref.id !== id);
       setReferences(updatedReferences);
-      saveToLocalStorage(updatedReferences);
     }
   };
 
@@ -257,7 +239,6 @@ export default function AdminReferencesPage() {
       ref.id === id ? { ...ref, featured: !ref.featured, updatedAt: new Date().toISOString() } : ref
     );
     setReferences(updatedReferences);
-    saveToLocalStorage(updatedReferences);
   };
 
   const handleBulkExport = () => {
@@ -283,7 +264,6 @@ export default function AdminReferencesPage() {
             const importedData = JSON.parse(e.target?.result as string);
             if (Array.isArray(importedData)) {
               setReferences(importedData);
-              saveToLocalStorage(importedData);
               alert(`${importedData.length} referans başarıyla içe aktarıldı.`);
             }
           } catch (error) {

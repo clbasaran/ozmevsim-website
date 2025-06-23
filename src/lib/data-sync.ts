@@ -8,9 +8,12 @@ export interface SyncResponse {
 export class AdminDataSync {
   private static instance: AdminDataSync;
   private pendingChanges: Map<string, any> = new Map();
+  private debounceTimers: Map<string, NodeJS.Timeout> = new Map();
   private isProduction = typeof window !== 'undefined' && 
     (window.location.hostname === 'ozmevsim.com' || 
      window.location.hostname.includes('ozmevsim-website.pages.dev'));
+  private isSyncing = false; // Prevent concurrent syncs
+  private internalStorageUpdate = false; // Prevent recursive localStorage calls
 
   static getInstance(): AdminDataSync {
     if (!AdminDataSync.instance) {
@@ -30,6 +33,12 @@ export class AdminDataSync {
     // Monitor localStorage changes
     const originalSetItem = localStorage.setItem;
     localStorage.setItem = (key: string, value: string) => {
+      // Skip internal updates to prevent infinite loops
+      if (this.internalStorageUpdate) {
+        originalSetItem.call(localStorage, key, value);
+        return;
+      }
+      
       console.log('📝 LocalStorage set:', key);
       originalSetItem.call(localStorage, key, value);
       
@@ -46,9 +55,15 @@ export class AdminDataSync {
     });
   }
 
-  // Handle admin panel changes
+  // Handle admin panel changes with debouncing
   private async handleAdminChange(key: string, value: string) {
-    console.log('🔄 handleAdminChange called:', { key, isProduction: this.isProduction });
+    console.log('🔄 handleAdminChange called:', { key, isProduction: this.isProduction, isSyncing: this.isSyncing });
+    
+    // Skip if already syncing to prevent concurrent operations
+    if (this.isSyncing) {
+      console.log('⏸️ Sync already in progress, skipping...');
+      return;
+    }
     
     if (this.isProduction) {
       try {
@@ -56,13 +71,29 @@ export class AdminDataSync {
         const data = JSON.parse(value);
         this.pendingChanges.set(key, data);
         
-        // Now that API routes work, auto-sync to server
-        console.log('📡 Starting API sync...');
-        await this.generateStaticData();
+        // Clear existing debounce timer for this key
+        if (this.debounceTimers.has(key)) {
+          clearTimeout(this.debounceTimers.get(key)!);
+        }
         
-        // Show success notification
-        console.log('🎉 Showing success notification...');
-        this.notifyAutoSyncSuccess();
+        // Debounce the sync operation to prevent rapid-fire calls
+        const timer = setTimeout(async () => {
+          console.log('📡 Starting debounced API sync...');
+          this.isSyncing = true;
+          
+          try {
+            await this.generateStaticData();
+            console.log('🎉 Showing success notification...');
+            this.notifyAutoSyncSuccess();
+          } catch (error) {
+            console.error('❌ Sync error:', error);
+          } finally {
+            this.isSyncing = false;
+            this.debounceTimers.delete(key);
+          }
+        }, 1000); // 1 second debounce
+        
+        this.debounceTimers.set(key, timer);
       } catch (error) {
         console.error('❌ Admin change handling error:', error);
       }
@@ -193,29 +224,39 @@ export class AdminDataSync {
 
       // First, handle deletions
       if (deletedProducts.length > 0) {
-        for (const deletedProduct of deletedProducts) {
+        for (const deletedProductId of deletedProducts) {
           try {
+            // deletedProducts array contains only IDs (strings), not full objects
+            const productId = typeof deletedProductId === 'object' ? deletedProductId.id : deletedProductId;
+            
+            if (!productId) {
+              console.error('❌ No product ID found for deletion:', deletedProductId);
+              continue;
+            }
+
             const deleteResponse = await fetch('/api/products', {
               method: 'DELETE',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ id: deletedProduct.id })
+              body: JSON.stringify({ id: productId })
             });
 
             if (deleteResponse.ok) {
-              console.log(`✅ Deleted product from D1: ${deletedProduct.name} (ID: ${deletedProduct.id})`);
+              console.log(`✅ Deleted product from D1: ID ${productId}`);
             } else {
               const error = await deleteResponse.text();
-              console.error(`❌ Failed to delete product ${deletedProduct.id}:`, error);
+              console.error(`❌ Failed to delete product ${productId}:`, error);
             }
           } catch (error) {
-            console.error(`❌ Error deleting product ${deletedProduct.id}:`, error);
+            console.error(`❌ Error deleting product:`, error);
           }
         }
         
-        // Clear deleted products after processing
+        // Clear deleted products after processing - use internal flag to prevent recursion
+        this.internalStorageUpdate = true;
         localStorage.setItem('ozmevsim_deleted_products', JSON.stringify([]));
+        this.internalStorageUpdate = false;
       }
 
       // Then, sync current products (add/update)
@@ -367,6 +408,13 @@ export class AdminDataSync {
   // Clear pending changes
   clearPendingChanges() {
     this.pendingChanges.clear();
+    
+    // Clear all debounce timers
+    Array.from(this.debounceTimers.values()).forEach(timer => clearTimeout(timer));
+    this.debounceTimers.clear();
+    
+    // Reset sync flag
+    this.isSyncing = false;
   }
 }
 

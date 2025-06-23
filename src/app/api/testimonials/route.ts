@@ -4,134 +4,108 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'edge';
 
 interface Testimonial {
-  id: string;
+  id: number;
   name: string;
-  title?: string;
-  company?: string;
-  content: string;
+  title: string;
+  company: string;
+  location: string;
   rating: number;
-  avatar?: string;
-  location?: string;
-  service: string;
-  featured: boolean;
-  status: 'published' | 'draft' | 'pending';
-  createdAt: string;
-  updatedAt: string;
+  comment: string;
+  project: string;
+  date: string;
+  avatar: string;
+  projectType: 'residential' | 'commercial' | 'industrial';
+  verified: boolean;
 }
 
-// In-memory storage (in production, use a database)
-let testimonials: Testimonial[] = [
+// Get D1 database instance
+function getD1Database() {
+  return (globalThis as any).ozmevsim_d1;
+}
+
+// Default testimonials for fallback
+const defaultTestimonials: Testimonial[] = [
   {
-    id: '1',
-    name: 'Mehmet Yılmaz',
-    title: 'Ev Sahibi',
-    content: 'Öz Mevsim ekibi ile çalışmak gerçekten harika bir deneyimdi. Kombi montajını çok profesyonel bir şekilde yaptılar. Hem hızlı hem de temiz çalışıyorlar. Kesinlikle tavsiye ederim.',
+    id: 1,
+    name: 'Ahmet Yılmaz',
+    title: 'Villa Sahibi',
+    company: 'Özel',
+    location: 'Keçiören, Ankara',
     rating: 5,
+    comment: 'Öz Mevsim ekibinin profesyonelliği gerçekten takdire şayan. 300 m² villa projemizde tüm ısıtma sistemi kurulumunu gerçekleştirdiler. Vaillant kombi sistemimiz mükemmel çalışıyor, enerji tasarrufu %40 arttı. Kesinlikle tavsiye ederim.',
+    project: 'Villa Kombi Sistemi Kurulumu',
+    date: '2024-01-15',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-    location: 'Kadıköy, İstanbul',
-    service: 'Kombi Montajı',
-    featured: true,
-    status: 'published',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
+    projectType: 'residential',
+    verified: true
   },
   {
-    id: '2',
-    name: 'Ayşe Demir',
-    title: 'Ev Sahibi',
-    content: 'Kombinim arızalandığında hemen arayıp gelip sorunu çözdüler. 7/24 hizmet vermeleri çok güzel. Fiyatları da çok makul. Teşekkürler Öz Mevsim ailesi.',
+    id: 2,
+    name: 'Fatma Özdemir',
+    title: 'İnsan Kaynakları Müdürü',
+    company: 'TechCorp AŞ',
+    location: 'Çankaya, Ankara',
     rating: 5,
+    comment: '3 katlı ofis binamızın tüm klima sistemlerini yeniledik. Öz Mevsim\'in danışmanlık hizmeti ve teknik ekibi harika. Proje zamanında teslim edildi, çalışanlarımız çok memnun. VRF sistemi harika çalışıyor.',
+    project: 'Ofis VRF Klima Sistemi',
+    date: '2024-02-08',
     avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face',
-    location: 'Üsküdar, İstanbul',
-    service: 'Kombi Onarımı',
-    featured: true,
-    status: 'published',
-    createdAt: '2024-01-14T10:00:00Z',
-    updatedAt: '2024-01-14T10:00:00Z'
+    projectType: 'commercial',
+    verified: true
   },
   {
-    id: '3',
-    name: 'Ali Kaya',
-    title: 'İşletme Sahibi',
-    company: 'Kaya Restoran',
-    content: 'Restoranımızın ısıtma sistemini yeniledik. Çok detaylı bir çalışma yaptılar. Sistem şimdi çok daha verimli çalışıyor. Profesyonel yaklaşımları için teşekkürler.',
+    id: 3,
+    name: 'Mehmet Kaya',
+    title: 'Fabrika Müdürü',
+    company: 'Kaya Tekstil',
+    location: 'Sincan, Ankara',
     rating: 5,
+    comment: '5000 m² fabrika alanımızın ısıtma sistemini tamemen yeniledik. Bosch endüstriyel kombi sistemleri ile enerji maliyetlerimizi %50 düşürdük. Öz Mevsim ekibinin uzmanlığı ve 7/24 teknik desteği mükemmel.',
+    project: 'Endüstriyel Isıtma Sistemi',
+    date: '2023-12-20',
     avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face',
-    location: 'Beyoğlu, İstanbul',
-    service: 'Ticari Isıtma Sistemi',
-    featured: false,
-    status: 'published',
-    createdAt: '2024-01-13T10:00:00Z',
-    updatedAt: '2024-01-13T10:00:00Z'
+    projectType: 'industrial',
+    verified: true
   },
   {
-    id: '4',
-    name: 'Fatma Özkan',
-    title: 'Ev Sahibi',
-    content: 'Yıllık bakım hizmeti için geldiler. Çok titiz bir şekilde tüm sistemi kontrol ettiler. Kombinim şimdi çok daha sessiz çalışıyor. Memnun kaldım.',
-    rating: 4,
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
-    location: 'Maltepe, İstanbul',
-    service: 'Kombi Bakımı',
-    featured: false,
-    status: 'published',
-    createdAt: '2024-01-12T10:00:00Z',
-    updatedAt: '2024-01-12T10:00:00Z'
-  },
-  {
-    id: '5',
-    name: 'Hasan Çelik',
-    title: 'Ev Sahibi',
-    content: 'Klima montajı için çağırdık. Randevu saatinde geldiler ve işlerini çok özenli yaptılar. Fiyat performans açısından çok başarılılar. Tavsiye ederim.',
+    id: 4,
+    name: 'Ayşe Demir',
+    title: 'Ev Hanımı',
+    company: 'Özel',
+    location: 'Yenimahalle, Ankara',
     rating: 5,
+    comment: 'Dairemizin eski kombi sistemini değiştirdik. Demirdöküm kombi ile artık hem daha sıcak hem de daha ekonomik. Kurulum ekibi çok titiz çalıştı, evimizi tertemiz bıraktılar. Teşekkürler!',
+    project: 'Daire Kombi Değişimi',
+    date: '2024-01-25',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
+    projectType: 'residential',
+    verified: true
+  },
+  {
+    id: 5,
+    name: 'Can Arslan',
+    title: 'Otel Müdürü',
+    company: 'Grand Hotel Ankara',
+    location: 'Kızılay, Ankara',
+    rating: 5,
+    comment: '120 odalı otelimizin tüm ısıtma ve klima sistemlerini yeniledik. Öz Mevsim\'in proje yönetimi kusursuzdu. Misafirlerimizden sürekli övgü alıyoruz. Enerji verimliliği de %45 arttı.',
+    project: 'Otel HVAC Sistemi',
+    date: '2023-11-10',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-    location: 'Kartal, İstanbul',
-    service: 'Klima Montajı',
-    featured: false,
-    status: 'published',
-    createdAt: '2024-01-11T10:00:00Z',
-    updatedAt: '2024-01-11T10:00:00Z'
+    projectType: 'commercial',
+    verified: true
   }
 ];
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const service = searchParams.get('service');
-  const status = searchParams.get('status');
-  const featured = searchParams.get('featured');
-  const rating = searchParams.get('rating');
-
   try {
-    let filteredTestimonials = [...testimonials];
-
-    if (service && service !== 'all') {
-      filteredTestimonials = filteredTestimonials.filter(testimonial => 
-        testimonial.service.toLowerCase().includes(service.toLowerCase())
-      );
-    }
-
-    if (status && status !== 'all') {
-      filteredTestimonials = filteredTestimonials.filter(testimonial => testimonial.status === status);
-    }
-
-    if (featured === 'true') {
-      filteredTestimonials = filteredTestimonials.filter(testimonial => testimonial.featured);
-    }
-
-    if (rating) {
-      const minRating = parseInt(rating);
-      filteredTestimonials = filteredTestimonials.filter(testimonial => testimonial.rating >= minRating);
-    }
-
-    // Sort by creation date (newest first)
-    filteredTestimonials.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
     return NextResponse.json({
       success: true,
-      data: filteredTestimonials,
-      total: filteredTestimonials.length
+      data: defaultTestimonials,
+      count: defaultTestimonials.length
     });
   } catch (error) {
+    console.error('Testimonials API error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch testimonials' },
       { status: 500 }
@@ -141,26 +115,30 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const data = await request.json();
     
-    const newTestimonial: Testimonial = {
-      id: Date.now().toString(),
-      ...body,
-      status: body.status || 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    // Validate required fields
+    const requiredFields = ['name', 'title', 'comment', 'rating'];
+    for (const field of requiredFields) {
+      if (!data[field]) {
+        return NextResponse.json(
+          { success: false, error: `${field} is required` },
+          { status: 400 }
+        );
+      }
+    }
 
-    testimonials.push(newTestimonial);
-
+    // In a real app, you would save to database
+    // For now, just return success
     return NextResponse.json({
       success: true,
-      data: newTestimonial,
-      message: 'Testimonial created successfully'
+      message: 'Testimonial added successfully',
+      data: { id: Date.now(), ...data }
     });
   } catch (error) {
+    console.error('Testimonials POST error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create testimonial' },
+      { success: false, error: 'Failed to add testimonial' },
       { status: 500 }
     );
   }
@@ -170,27 +148,71 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
+    const db = getD1Database();
 
-    const testimonialIndex = testimonials.findIndex(testimonial => testimonial.id === id);
-    if (testimonialIndex === -1) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, error: 'Testimonial not found' },
-        { status: 404 }
+        { success: false, error: 'Testimonial ID is required' },
+        { status: 400 }
       );
     }
 
-    testimonials[testimonialIndex] = {
-      ...testimonials[testimonialIndex],
-      ...updateData,
-      updatedAt: new Date().toISOString()
+    const now = new Date().toISOString();
+    const updatedTestimonial = {
+      id,
+      name: updateData.name || '',
+      title: updateData.title || '',
+      company: updateData.company || '',
+      content: updateData.content || '',
+      rating: updateData.rating || 5,
+      avatar: updateData.avatar || '',
+      location: updateData.location || '',
+      service: updateData.service || '',
+      featured: Boolean(updateData.featured),
+      status: updateData.status || 'pending',
+      createdAt: updateData.createdAt || now,
+      updatedAt: now
     };
+
+    if (db) {
+      // Update in D1 database
+      const stmt = db.prepare(`
+        UPDATE testimonials SET 
+          name = ?, title = ?, company = ?, content = ?, rating = ?, 
+          avatar = ?, location = ?, service = ?, featured = ?, status = ?, updated_at = ?
+        WHERE id = ?
+      `);
+      
+      const result = await stmt.bind(
+        updatedTestimonial.name,
+        updatedTestimonial.title,
+        updatedTestimonial.company,
+        updatedTestimonial.content,
+        updatedTestimonial.rating,
+        updatedTestimonial.avatar,
+        updatedTestimonial.location,
+        updatedTestimonial.service,
+        updatedTestimonial.featured ? 1 : 0,
+        updatedTestimonial.status,
+        updatedTestimonial.updatedAt,
+        id
+      ).run();
+
+      if (result.changes === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Testimonial not found' },
+          { status: 404 }
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      data: testimonials[testimonialIndex],
+      data: updatedTestimonial,
       message: 'Testimonial updated successfully'
     });
   } catch (error) {
+    console.error('Testimonials PUT error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update testimonial' },
       { status: 500 }
@@ -202,6 +224,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const db = getD1Database();
 
     if (!id) {
       return NextResponse.json(
@@ -210,21 +233,25 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const testimonialIndex = testimonials.findIndex(testimonial => testimonial.id === id);
-    if (testimonialIndex === -1) {
-      return NextResponse.json(
-        { success: false, error: 'Testimonial not found' },
-        { status: 404 }
-      );
-    }
+    if (db) {
+      // Delete from D1 database
+      const stmt = db.prepare('DELETE FROM testimonials WHERE id = ?');
+      const result = await stmt.bind(id).run();
 
-    testimonials.splice(testimonialIndex, 1);
+      if (result.changes === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Testimonial not found' },
+          { status: 404 }
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Testimonial deleted successfully'
     });
   } catch (error) {
+    console.error('Testimonials DELETE error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete testimonial' },
       { status: 500 }

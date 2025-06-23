@@ -77,9 +77,30 @@ export default function FAQSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // For static deployment, use default data
-    setFaqs(defaultFAQs);
-    setLoading(false);
+    const fetchFAQs = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faq');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setFaqs(result.data);
+          } else {
+            // Fallback to default data if API fails
+            setFaqs(defaultFAQs);
+          }
+        } else {
+          setFaqs(defaultFAQs);
+        }
+      } catch (error) {
+        console.error('Failed to fetch FAQs:', error);
+        setFaqs(defaultFAQs);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFAQs();
   }, []);
 
   const filteredFAQs = faqs.filter((faq: FAQ) => {
@@ -220,9 +241,9 @@ export default function FAQSection() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mr-3 ${categories[faq.category].color}`}>
-                          {React.createElement(categories[faq.category].icon, { className: "h-3 w-3 mr-1" })}
-                          {categories[faq.category].name}
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mr-3 ${categories[faq.category]?.color || 'bg-gray-100 text-gray-600'}`}>
+                          {categories[faq.category]?.icon && React.createElement(categories[faq.category].icon, { className: "h-3 w-3 mr-1" })}
+                          {categories[faq.category]?.name || faq.category}
                         </span>
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 pr-4">

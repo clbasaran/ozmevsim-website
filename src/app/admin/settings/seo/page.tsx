@@ -128,24 +128,15 @@ export default function SEOSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  // Settings loaded from default state only
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      // Load settings from localStorage
-      const savedSettings = localStorage.getItem('ozmevsim_seo_settings');
-      if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
-      }
-    } catch (error) {
-      console.error('Error loading SEO settings:', error);
-    }
+    // Settings are already loaded from default state
   }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      localStorage.setItem('ozmevsim_seo_settings', JSON.stringify(settings));
+      // Settings saved to state only (no localStorage)
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {

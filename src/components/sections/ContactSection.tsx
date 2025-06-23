@@ -116,31 +116,6 @@ const ContactSection = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        
-        // Mesajı localStorage'a da kaydet (admin panel için)
-        const messageData = {
-          id: result.data?.id || Date.now().toString(),
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          subject: formData.service,
-          message: formData.message,
-          priority: formData.priority,
-          date: new Date().toISOString(),
-          status: 'unread',
-          createdAt: new Date().toISOString(),
-          source: 'contact_section'
-        };
-
-        // Mevcut mesajları al
-        const existingMessages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
-        const updatedMessages = [messageData, ...existingMessages];
-        
-        // Güncellenen mesajları kaydet
-        localStorage.setItem('contactMessages', JSON.stringify(updatedMessages));
-        localStorage.setItem('ozmevsim_contact_messages', JSON.stringify(updatedMessages));
-        
         setSubmitStatus('success');
         setFormData({
           name: '',
@@ -155,42 +130,7 @@ const ContactSection = () => {
       }
     } catch (error) {
       console.error('Form submission error:', error);
-      
-      // API başarısız olursa sadece localStorage'a kaydet
-      try {
-        const messageData = {
-          id: Date.now().toString(),
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          subject: formData.service,
-          message: formData.message,
-          priority: formData.priority,
-          date: new Date().toISOString(),
-          status: 'unread',
-          createdAt: new Date().toISOString(),
-          source: 'contact_section'
-        };
-
-        const existingMessages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
-        const updatedMessages = [messageData, ...existingMessages];
-        
-        localStorage.setItem('contactMessages', JSON.stringify(updatedMessages));
-        localStorage.setItem('ozmevsim_contact_messages', JSON.stringify(updatedMessages));
-        
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          service: '',
-          message: '',
-          priority: 'normal'
-        });
-        setSubmitStatus('success'); // Başarılı göster çünkü localStorage'a kaydedildi
-      } catch (storageError) {
-        console.error('Storage error:', storageError);
-        setSubmitStatus('error');
-      }
+      setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
       setTimeout(() => setSubmitStatus('idle'), 5000);

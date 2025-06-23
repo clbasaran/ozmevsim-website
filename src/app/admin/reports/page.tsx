@@ -16,7 +16,7 @@ import {
   DeviceTabletIcon,
 } from '@heroicons/react/24/outline';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
-import { getAllProducts } from '@/lib/data';
+import { getProducts } from '@/lib/data';
 
 // Chart.js registration
 import {
@@ -74,8 +74,8 @@ export default function ReportsPage() {
           fetch('/api/contact').then(res => res.json()).catch(() => ({ messages: [] }))
         ]);
 
-        // Get products from localStorage
-        const products = getAllProducts();
+        // Get products from D1 database
+        const products = await getProducts();
 
         // Calculate real statistics
         const blogCount = blogResponse.posts?.length || 0;

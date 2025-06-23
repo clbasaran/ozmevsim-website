@@ -23,8 +23,7 @@ import {
   ChevronUpIcon
 } from '@heroicons/react/24/outline';
 
-// Import actual product data
-import { products as actualProducts } from '@/data/products';
+// No longer importing static products - will fetch from D1 API
 
 interface Product {
   id: string;
@@ -54,86 +53,9 @@ interface Category {
   subcategories: string[];
 }
 
-// Convert actual products to admin format
-const convertToAdminProduct = (product: any, index: number): Product => {
-  const specs = Object.entries(product.specifications || {}).map(([key, value]) => ({
-    key,
-    value: value as string
-  }));
-
-  return {
-    id: product.id,
-    name: product.name,
-    code: `${product.brand.toUpperCase()}-${product.id}`,
-    category: product.category,
-    subcategory: product.brand,
-    shortDescription: product.description.substring(0, 100) + '...',
-    description: product.description,
-    specifications: specs,
-    images: [product.image],
-    catalogPdf: '',
-    price: 0,
-    stockStatus: product.inStock ? 'in-stock' : 'out-of-stock',
-    featured: product.featured,
-    sortOrder: index + 1,
-    status: 'active',
-    metaTitle: product.name,
-    metaDescription: product.description,
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-20'
-  };
-};
-
 export default function AdminProductsPage() {
-  // Convert actual products to admin format
-  const convertToAdminProduct = (product: any, index: number): Product => {
-    const specs = Object.entries(product.specifications || {}).map(([key, value]) => ({
-      key,
-      value: value as string
-    }));
-
-    return {
-      id: product.id,
-      name: product.name,
-      code: `${product.brand.toUpperCase()}-${product.id}`,
-      category: product.category,
-      subcategory: product.brand,
-      shortDescription: product.description.substring(0, 100) + '...',
-      description: product.description,
-      specifications: specs,
-      images: [product.image],
-      catalogPdf: '',
-      price: 0,
-      stockStatus: product.inStock ? 'in-stock' : 'out-of-stock',
-      featured: product.featured,
-      sortOrder: index + 1,
-      status: 'active',
-      metaTitle: product.name,
-      metaDescription: product.description,
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-20'
-    };
-  };
-
-  // Get deleted product IDs from localStorage
-  const getDeletedProductIds = (): string[] => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const deleted = localStorage.getItem('ozmevsim_deleted_products');
-      return deleted ? JSON.parse(deleted) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  // Filter out deleted products
-  const convertedProducts = actualProducts
-    .map((product, index) => convertToAdminProduct(product, index))
-    .filter(product => !getDeletedProductIds().includes(product.id));
-  
-  const [products, setProducts] = useState<Product[]>(convertedProducts);
-  const [deletedProductIds, setDeletedProductIds] = useState<string[]>(getDeletedProductIds());
-
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([
     {
       id: '1',
@@ -168,6 +90,7 @@ export default function AdminProductsPage() {
   const [itemsPerPage] = useState(10);
   const [sortBy, setSortBy] = useState('sortOrder');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -178,52 +101,59 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
+  // Load products from D1 API
+  const loadProductsFromAPI = async () => {
     try {
-      const savedProducts = localStorage.getItem('ozmevsim_products');
-      const savedCategories = localStorage.getItem('ozmevsim_categories');
-      const savedDeletedIds = getDeletedProductIds();
-      
-      if (savedProducts && savedDeletedIds.length === deletedProductIds.length) {
-        // Use saved products if available and deletion state matches
-        setProducts(JSON.parse(savedProducts));
-      } else {
-        // Filter converted products by deleted IDs and set
-        const filteredProducts = convertedProducts;
-        setProducts(filteredProducts);
-        localStorage.setItem('ozmevsim_products', JSON.stringify(filteredProducts));
+      setIsLoading(true);
+      const response = await fetch('/api/products');
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
       }
       
-      if (savedCategories) {
-        setCategories(JSON.parse(savedCategories));
+      const data = await response.json();
+      if (data.success && data.data) {
+        // Convert API products to admin format
+        const adminProducts = data.data.map((product: any, index: number) => ({
+          id: product.id.toString(),
+          name: product.title || '',
+          code: `${product.brand || 'UNKNOWN'}-${product.id}`,
+          category: product.category || '',
+          subcategory: product.brand || '',
+          shortDescription: (product.description || '').substring(0, 100) + '...',
+          description: product.description || '',
+          specifications: Array.isArray(product.specifications) 
+            ? product.specifications 
+            : Object.entries(product.specifications || {}).map(([key, value]) => ({
+                key,
+                value: value as string
+              })),
+          images: product.image_url ? [product.image_url] : [],
+          catalogPdf: '',
+          price: product.price || 0,
+          stockStatus: 'in-stock' as const,
+          featured: false,
+          sortOrder: index + 1,
+          status: product.status === 'active' ? 'active' as const : 'inactive' as const,
+          metaTitle: product.title || '',
+          metaDescription: product.description || '',
+          createdAt: product.created_at || new Date().toISOString().split('T')[0],
+          updatedAt: product.updated_at || new Date().toISOString().split('T')[0]
+        }));
+        
+        setProducts(adminProducts);
       }
     } catch (error) {
-      console.error('Error loading products data:', error);
+      console.error('Failed to load products:', error);
+      alert('Ürünler yüklenirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    loadProductsFromAPI();
   }, []);
-
-  // Save data to localStorage whenever products change
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem('ozmevsim_products', JSON.stringify(products));
-    } catch (error) {
-      console.error('Error saving products:', error);
-    }
-  }, [products]);
-
-  // Save deleted product IDs to localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem('ozmevsim_deleted_products', JSON.stringify(deletedProductIds));
-    } catch (error) {
-      console.error('Error saving deleted product IDs:', error);
-    }
-  }, [deletedProductIds]);
 
   // Filter and search products
   const filteredProducts = products.filter(product => {
@@ -297,122 +227,108 @@ export default function AdminProductsPage() {
     setIsEditing(true);
   };
 
-  // KV Store ile Real-Time Sync
-  const syncToKVStore = async (products: any[], deletedIds: string[]) => {
-    try {
-      console.log('🔄 Syncing to KV Store...', { products: products.length, deleted: deletedIds.length });
-      
-      // KV Store REST API kullanarak veriyi kaydet
-      const kvData = {
-        products: products,
-        deletedProducts: deletedIds,
-        lastUpdated: new Date().toISOString()
-      };
-      
-      // Cloudflare KV REST API endpoint
-      const accountId = 'f4d00d3c4e14c7c2d2b6c8c8f8c8f8f8'; // Account ID (placeholder)
-      const namespaceId = 'aa74f8e3bbab466e94f14bcc0bf0b5e2';
-      
-      // Mock sync için console log (production'da REST API kullanılacak)
-      console.log('📡 KV Store sync data:', JSON.stringify(kvData, null, 2));
-      
-      // localStorage'e backup
-      localStorage.setItem('ozmevsim_kv_backup', JSON.stringify(kvData));
-      
-      alert('✅ Değişiklikler başarıyla senkronize edildi!');
-      
-    } catch (error) {
-      console.error('❌ KV Store sync error:', error);
-      alert('⚠️ Senkronizasyon hatası: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
-    }
-  };
-
-  // Ana sync fonksiyonu - tüm değişiklikleri otomatik senkronize eder
-  const syncAllChanges = () => {
-    const currentProducts = JSON.parse(localStorage.getItem('ozmevsim_products') || '[]');
-    const deletedProducts = JSON.parse(localStorage.getItem('ozmevsim_deleted_products') || '[]');
-    
-    syncToKVStore(currentProducts, deletedProducts);
-  };
-
-  const handleSaveProduct = () => {
+  const handleSaveProduct = async () => {
     if (!selectedProduct) return;
+
+    // Validation - check required fields
+    if (!selectedProduct.name || !selectedProduct.description) {
+      alert('❌ Ürün adı ve açıklama zorunludur!');
+      return;
+    }
+
+    if (!selectedProduct.category) {
+      alert('❌ Kategori seçimi zorunludur!');
+      return;
+    }
 
     const updatedProduct = {
       ...selectedProduct,
       updatedAt: new Date().toISOString().split('T')[0]
     };
 
-    if (isCreating) {
-      setProducts(prev => [...prev, updatedProduct]);
-    } else {
-      setProducts(prev => prev.map(p => p.id === selectedProduct.id ? updatedProduct : p));
-    }
-
-    // Otomatik senkronizasyon
-    setTimeout(() => {
-      syncAllChanges();
-    }, 500);
-
-    setSelectedProduct(null);
-    setIsEditing(false);
-    setIsCreating(false);
-    alert('Ürün başarıyla kaydedildi!');
-  };
-
-  const handleDeleteProduct = (id: string) => {
-    if (confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
-      // Add to deleted products list
-      setDeletedProductIds(prev => [...prev, id]);
-      // Remove from current products list
-      setProducts(prev => prev.filter(p => p.id !== id));
-      
-      // Otomatik senkronizasyon
-      setTimeout(() => {
-        syncAllChanges();
-      }, 500);
-      
-      alert('Ürün başarıyla silindi!');
-    }
-  };
-
-  // ÇALIŞAN ÇÖZÜM: Direct Database Update  
-  const syncToDatabase = async (product: any, action: 'create' | 'update' | 'delete') => {
     try {
-      console.log(`🔄 ${action} operation for product:`, product);
-      
-      // LocalStorage'e de kaydet (fallback için)
-      if (action === 'delete') {
-        const deletedProducts = JSON.parse(localStorage.getItem('ozmevsim_deleted_products') || '[]');
-        deletedProducts.push(product.id);
-        localStorage.setItem('ozmevsim_deleted_products', JSON.stringify(deletedProducts));
-      } else {
-        const products = JSON.parse(localStorage.getItem('ozmevsim_products') || '[]');
-        if (action === 'create') {
-          products.push(product);
-        } else if (action === 'update') {
-          const index = products.findIndex((p: any) => p.id === product.id);
-          if (index !== -1) {
-            products[index] = product;
-          }
-        }
-        localStorage.setItem('ozmevsim_products', JSON.stringify(products));
+      // Save directly to D1 database via API
+      const apiData = {
+        title: updatedProduct.name,
+        description: updatedProduct.description,
+        price: updatedProduct.price,
+        image_url: updatedProduct.images[0] || '',
+        category: updatedProduct.category,
+        brand: updatedProduct.subcategory || '',
+        model: '',
+        features: [],
+        specifications: updatedProduct.specifications.reduce((acc, spec) => {
+          acc[spec.key] = spec.value;
+          return acc;
+        }, {} as Record<string, string>),
+        status: updatedProduct.status,
+        created_at: updatedProduct.createdAt,
+        updated_at: updatedProduct.updatedAt
+      };
+
+      const response = await fetch('/api/products', {
+        method: isCreating ? 'POST' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(isCreating ? apiData : { ...apiData, id: updatedProduct.id })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save product');
       }
-      
-      // Direct D1 Database Command (background)
-      // Bu komut backend'de manual çalıştırılacak
-      const dbCommand = action === 'delete' 
-        ? `npx wrangler d1 execute ozmevsim-d1 --command="DELETE FROM products WHERE id = '${product.id}'"`
-        : action === 'create'
-        ? `npx wrangler d1 execute ozmevsim-d1 --command="INSERT INTO products (id, title, description, price, category, image, features, brand, model, specs) VALUES ('${product.id}', '${product.title}', '${product.description}', ${product.price}, '${product.category}', '${product.image}', '${JSON.stringify(product.features).replace(/'/g, "''")}', '${product.brand}', '${product.model}', '${JSON.stringify(product.specs).replace(/'/g, "''")}')"`
-        : `npx wrangler d1 execute ozmevsim-d1 --command="UPDATE products SET title='${product.title}', description='${product.description}', price=${product.price}, category='${product.category}', image='${product.image}', features='${JSON.stringify(product.features).replace(/'/g, "''")}', brand='${product.brand}', model='${product.model}', specs='${JSON.stringify(product.specs).replace(/'/g, "''")}' WHERE id='${product.id}'"`;
-      
-      console.log('📋 Database Command:', dbCommand);
-      alert(`✅ ${action} başarılı! \n\n📋 Database sync için terminalde çalıştır:\n${dbCommand}`);
-      
+
+      const result = await response.json();
+      if (result.success) {
+        // Update local state
+        if (isCreating) {
+          setProducts([...products, { ...updatedProduct, id: result.data.id.toString() }]);
+        } else {
+          setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+        }
+        
+        setIsEditing(false);
+        setSelectedProduct(null);
+        setIsCreating(false);
+        alert('✅ Ürün başarıyla kaydedildi!');
+      } else {
+        throw new Error(result.error || 'Save failed');
+      }
     } catch (error) {
-      console.error('Database sync error:', error);
-      alert('⚠️ LocalStorage\'e kaydedildi, database sync gerekli!');
+      console.error('Error saving product:', error);
+      alert('❌ Ürün kaydedilirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/products', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Update local state
+        setProducts(products.filter(p => p.id !== id));
+        alert('✅ Ürün başarıyla silindi!');
+      } else {
+        throw new Error(result.error || 'Delete failed');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('❌ Ürün silinirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
     }
   };
 
@@ -426,49 +342,40 @@ export default function AdminProductsPage() {
 
   const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
     if (!selectedProduct) return;
-    const newSpecs = [...selectedProduct.specifications];
-    newSpecs[index][field] = value;
-    setSelectedProduct({
-      ...selectedProduct,
-      specifications: newSpecs
-    });
+    const updatedSpecs = [...selectedProduct.specifications];
+    updatedSpecs[index] = { ...updatedSpecs[index], [field]: value };
+    setSelectedProduct({ ...selectedProduct, specifications: updatedSpecs });
   };
 
-    const removeSpecification = (index: number) => {
+  const removeSpecification = (index: number) => {
     if (!selectedProduct) return;
-    setSelectedProduct({
-      ...selectedProduct,
-      specifications: selectedProduct.specifications.filter((_, i) => i !== index)
-    });
+    const updatedSpecs = selectedProduct.specifications.filter((_, i) => i !== index);
+    setSelectedProduct({ ...selectedProduct, specifications: updatedSpecs });
   };
 
   const moveSortOrder = (productId: string, direction: 'up' | 'down') => {
-    const currentProduct = products.find(p => p.id === productId);
-    if (!currentProduct) return;
-
-    const currentOrder = currentProduct.sortOrder;
-    const targetOrder = direction === 'up' ? currentOrder - 1 : currentOrder + 1;
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex === -1) return;
     
-    const targetProduct = products.find(p => p.sortOrder === targetOrder);
+    const newIndex = direction === 'up' ? productIndex - 1 : productIndex + 1;
+    if (newIndex < 0 || newIndex >= products.length) return;
     
-    if (targetProduct) {
-      // Swap sort orders
-      setProducts(prev => prev.map(p => {
-        if (p.id === productId) {
-          return { ...p, sortOrder: targetOrder };
-        } else if (p.id === targetProduct.id) {
-          return { ...p, sortOrder: currentOrder };
-        }
-        return p;
-      }));
-    }
+    const updatedProducts = [...products];
+    [updatedProducts[productIndex], updatedProducts[newIndex]] = [updatedProducts[newIndex], updatedProducts[productIndex]];
+    
+    // Update sort orders
+    updatedProducts.forEach((product, index) => {
+      product.sortOrder = index + 1;
+    });
+    
+    setProducts(updatedProducts);
   };
 
   const getStockStatusColor = (status: string) => {
     switch (status) {
       case 'in-stock': return 'bg-green-100 text-green-800';
-      case 'limited': return 'bg-yellow-100 text-yellow-800';
       case 'out-of-stock': return 'bg-red-100 text-red-800';
+      case 'limited': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -476,77 +383,88 @@ export default function AdminProductsPage() {
   const getStockStatusText = (status: string) => {
     switch (status) {
       case 'in-stock': return 'Stokta';
+      case 'out-of-stock': return 'Stok Yok';
       case 'limited': return 'Sınırlı';
-      case 'out-of-stock': return 'Tükendi';
       default: return 'Bilinmiyor';
     }
   };
 
-  const handleRestoreDeletedProducts = () => {
-    if (confirm('Tüm silinen ürünleri geri yüklemek istediğinizden emin misiniz?')) {
-      // Clear deleted products list
-      setDeletedProductIds([]);
-      // Reload all products
-      const allProducts = actualProducts.map((product, index) => convertToAdminProduct(product, index));
-      setProducts(allProducts);
-      localStorage.removeItem('ozmevsim_deleted_products');
-      alert('Silinen ürünler başarıyla geri yüklendi!');
+  const handleBulkExport = () => {
+    const dataStr = JSON.stringify(products, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `ozmevsim-products-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.length === 0) {
+      alert('Silmek için ürün seçin!');
+      return;
+    }
+
+    if (!confirm(`${selectedProducts.length} ürünü silmek istediğinizden emin misiniz?`)) {
+      return;
+    }
+
+    try {
+      // Delete selected products one by one
+      for (const productId of selectedProducts) {
+        const response = await fetch('/api/products', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: productId })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to delete product ${productId}`);
+        }
+      }
+
+      // Update local state
+      setProducts(products.filter(p => !selectedProducts.includes(p.id)));
+      setSelectedProducts([]);
+      alert('✅ Seçili ürünler başarıyla silindi!');
+    } catch (error) {
+      console.error('Error deleting products:', error);
+      alert('❌ Ürünler silinirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
     }
   };
 
-  const handleBulkImport = () => {
-    // Simulate Excel import
-    const sampleProducts = [
-      {
-        id: Date.now().toString(),
-        name: 'İmport Edilen Ürün 1',
-        code: 'IMP-001',
-        category: 'VRF Sistemler',
-        subcategory: 'İç Üniteler',
-        shortDescription: 'Excel\'den içe aktarılan örnek ürün',
-        description: '<p>Bu ürün Excel dosyasından içe aktarılmıştır.</p>',
-        specifications: [{ key: 'İçe Aktarma', value: 'Excel' }],
-        images: [],
-        catalogPdf: '',
-        price: 10000,
-        stockStatus: 'in-stock' as const,
-        featured: false,
-        sortOrder: products.length + 1,
-        status: 'active' as const,
-        metaTitle: 'İmport Edilen Ürün',
-        metaDescription: 'Excel\'den içe aktarılan ürün',
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
-      }
-    ];
-
-    setProducts(prev => [...prev, ...sampleProducts]);
-    alert('Örnek ürünler başarıyla içe aktarıldı!');
+  const handleSelectAll = () => {
+    if (selectedProducts.length === paginatedProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(paginatedProducts.map(p => p.id));
+    }
   };
 
-  const handleBulkExport = () => {
-    const csvContent = [
-      ['ID', 'Ürün Adı', 'Ürün Kodu', 'Kategori', 'Alt Kategori', 'Fiyat', 'Stok Durumu', 'Durum'],
-      ...products.map(p => [
-        p.id,
-        p.name,
-        p.code,
-        p.category,
-        p.subcategory,
-        p.price,
-        p.stockStatus,
-        p.status
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'urunler.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleSelectProduct = (productId: string) => {
+    if (selectedProducts.includes(productId)) {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+    } else {
+      setSelectedProducts([...selectedProducts, productId]);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Ürünler yükleniyor...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -559,26 +477,21 @@ export default function AdminProductsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 mt-4 sm:mt-0">
+          {selectedProducts.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+            >
+              <TrashIcon className="w-4 h-4" />
+              Seçilenleri Sil ({selectedProducts.length})
+            </button>
+          )}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
           >
             <FunnelIcon className="w-4 h-4" />
             Filtrele
-          </button>
-          <button
-            onClick={handleRestoreDeletedProducts}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-          >
-            <DocumentArrowDownIcon className="w-4 h-4" />
-            Geri Yükle
-          </button>
-          <button
-            onClick={handleBulkImport}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
-          >
-            <DocumentArrowDownIcon className="w-4 h-4" />
-            İçe Aktar
           </button>
           <button
             onClick={handleBulkExport}
@@ -646,6 +559,14 @@ export default function AdminProductsPage() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                    onChange={handleSelectAll}
+                    className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('name')}
@@ -720,6 +641,14 @@ export default function AdminProductsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={() => handleSelectProduct(product.id)}
+                      className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">

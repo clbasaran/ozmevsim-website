@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,17 +12,68 @@ import {
   ShoppingCartIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
-import { getProductById, getProductsByCategory } from '@/data/products';
+import { getProducts, getProductById } from '@/lib/data';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 interface ProductDetailClientProps {
   productId: string;
+  initialProduct?: any;
 }
 
-export default function ProductDetailClient({ productId }: ProductDetailClientProps) {
-  const product = getProductById(productId);
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  category: string;
+  brand: string;
+  features: string[];
+  isActive: boolean;
+  featured?: boolean;
+  specifications?: Record<string, string>;
+}
+
+export default function ProductDetailClient({ productId, initialProduct }: ProductDetailClientProps) {
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('features');
+
+  useEffect(() => {
+    const loadProductData = async () => {
+      try {
+        setIsLoading(true);
+        console.log('🔍 ProductDetailClient - Loading product ID:', productId);
+        
+        // Get all products first
+        const allProducts = await getProducts();
+        console.log('🔍 ProductDetailClient - All products:', allProducts.map(p => ({ id: p.id, name: p.name })));
+        
+        // Find the specific product
+        const productData = allProducts.find(p => p.id === parseInt(productId));
+        console.log('🔍 ProductDetailClient - Found product:', productData);
+        
+        if (productData) {
+          setProduct(productData);
+          
+          // Get related products
+          const related = allProducts
+            .filter(p => p.category === productData.category && p.id !== productData.id)
+            .slice(0, 3);
+          setRelatedProducts(related);
+        } else {
+          console.error('❌ Product not found for ID:', productId);
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProductData();
+  }, [productId]);
 
   // WhatsApp redirect function
   const handleWhatsAppRedirect = (productName: string) => {
@@ -32,6 +83,21 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="pt-32 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Ürün yükleniyor...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -54,10 +120,6 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
       </div>
     );
   }
-
-  const relatedProducts = getProductsByCategory(product.category)
-    .filter(p => p.id !== product.id)
-    .slice(0, 3);
 
   const tabs = [
     { id: 'features', name: 'Özellikler', icon: CheckCircleIcon },
@@ -258,12 +320,15 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-6">Teknik Özellikler</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {Object.entries(product.specifications).map(([key, value]) => (
+                    {product.specifications && Object.entries(product.specifications).map(([key, value]) => (
                       <div key={key} className="flex justify-between items-center py-3 border-b border-gray-100">
                         <span className="font-medium text-gray-600">{key}</span>
                         <span className="text-gray-900">{value}</span>
                       </div>
                     ))}
+                    {(!product.specifications || Object.keys(product.specifications).length === 0) && (
+                      <p className="text-gray-500 col-span-2">Teknik özellikler henüz eklenmemiş.</p>
+                    )}
                   </div>
                 </div>
               )}

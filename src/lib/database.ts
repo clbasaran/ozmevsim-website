@@ -236,6 +236,39 @@ export class DatabaseService {
     }
   }
 
+  async updateFAQ(id: number, faq: any) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE faqs 
+        SET question = ?, answer = ?, category = ?, order_index = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
+      const result = await stmt.bind(
+        faq.question,
+        faq.answer,
+        faq.category,
+        faq.order_index || 0,
+        faq.status || 'active',
+        id
+      ).run();
+      return { success: result.success };
+    } catch (error: any) {
+      console.error('Error updating FAQ:', error);
+      return { success: false, error: error?.message || 'Unknown error' };
+    }
+  }
+
+  async deleteFAQ(id: number) {
+    try {
+      const stmt = this.db.prepare('DELETE FROM faqs WHERE id = ?');
+      const result = await stmt.bind(id).run();
+      return { success: result.success };
+    } catch (error: any) {
+      console.error('Error deleting FAQ:', error);
+      return { success: false, error: error?.message || 'Unknown error' };
+    }
+  }
+
   // Testimonials işlemleri
   async getTestimonials(status = 'active') {
     try {

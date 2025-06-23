@@ -21,7 +21,23 @@ import {
   CameraIcon,
   ShareIcon
 } from '@heroicons/react/24/outline';
-import { getFeaturedReferences, type Reference } from '@/lib/data';
+// import { getFeaturedReferences, type Reference } from '@/lib/data';
+
+interface Reference {
+  id: number;
+  title: string;
+  description: string;
+  client: string;
+  location: string;
+  category: string;
+  completedDate: string;
+  image: string;
+  status: 'active' | 'inactive';
+  featured: boolean;
+  rating: number;
+  createdAt: string;
+  updatedAt: string;
+}
 import Image from 'next/image';
 
 const PortfolioSection = () => {
@@ -35,12 +51,20 @@ const PortfolioSection = () => {
     threshold: 0.1,
   });
 
-  // Load references
+  // Load references from API
   useEffect(() => {
-    const loadReferences = () => {
+    const loadReferences = async () => {
       try {
-        const apiReferences = getFeaturedReferences();
-        setReferences(apiReferences);
+        setIsLoading(true);
+        const response = await fetch('/api/references?featured=true');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setReferences(result.data);
+          }
+        } else {
+          console.error('Failed to fetch references:', response.status);
+        }
       } catch (error) {
         console.error('Error loading references:', error);
       } finally {
@@ -53,10 +77,15 @@ const PortfolioSection = () => {
 
   // Listen for reference updates from admin panel
   useEffect(() => {
-    const handleReferencesUpdate = () => {
+    const handleReferencesUpdate = async () => {
       try {
-        const apiReferences = getFeaturedReferences();
-        setReferences(apiReferences);
+        const response = await fetch('/api/references?featured=true');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setReferences(result.data);
+          }
+        }
       } catch (error) {
         console.error('Error loading updated references:', error);
       }

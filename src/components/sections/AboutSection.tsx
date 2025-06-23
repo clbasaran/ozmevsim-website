@@ -104,167 +104,32 @@ const AboutSection = () => {
     { year: '2023', event: '2500+ proje tamamlandı' },
   ]);
 
-  // Load team members from localStorage
+  // Load team members from API
   useEffect(() => {
-    if (typeof window === 'undefined') return; // Skip on server-side
-    
-    const loadTeamMembers = () => {
-      const savedTeamMembers = localStorage.getItem('team-members');
-      if (savedTeamMembers) {
-        try {
-          const parsedTeamMembers = JSON.parse(savedTeamMembers);
-          // Convert admin format to display format
-          const displayTeamMembers = parsedTeamMembers
-            .filter((member: any) => member.name && member.name.trim()) // Only show members with names
-            .map((member: any) => ({
-              name: member.name || 'İsimsiz',
-              role: member.position || 'Pozisyon Belirtilmemiş',
+    const loadTeamMembers = async () => {
+      try {
+        const response = await fetch('/api/team');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data.length > 0) {
+            // Convert API data to expected format
+            const convertedMembers = result.data.slice(0, 4).map((member: any) => ({
+              name: member.name,
+              role: member.position,
               image: member.photo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              expertise: (member.specializations && member.specializations.length > 0) 
-                ? member.specializations[0] 
-                : (member.position || 'Genel'),
-              experience: member.yearsOfExperience 
-                ? `${member.yearsOfExperience}+ yıl` 
-                : '0+ yıl',
-              description: member.bio || 'Açıklama bulunmuyor.',
-              email: member.email || '',
-              phone: member.phone || '',
-              linkedin: member.linkedin || '',
-              twitter: member.twitter || '',
-              location: member.location || '',
-              education: member.education || '',
-              certifications: member.certifications || [],
-              languages: member.languages || [],
-              achievements: member.achievements || []
+              expertise: member.specializations?.[0] || member.position,
+              experience: member.years_of_experience ? `${member.years_of_experience}+ yıl` : '5+ yıl',
+              description: member.bio || `${member.position} uzmanı.`
             }));
-          if (displayTeamMembers.length > 0) {
-            setTeamMembers(displayTeamMembers);
+            setTeamMembers(convertedMembers);
           }
-        } catch (error) {
-          console.error('Error parsing team members:', error);
         }
+      } catch (error) {
+        console.error('Failed to load team members:', error);
       }
     };
 
-    // Load timeline/milestones from localStorage
-    const loadTimeline = () => {
-      const savedMilestones = localStorage.getItem('milestones');
-      if (savedMilestones) {
-        try {
-          const parsedMilestones = JSON.parse(savedMilestones);
-          // Convert admin format to display format
-          const displayTimeline = parsedMilestones
-            .filter((milestone: any) => milestone.year && milestone.title)
-            .map((milestone: any) => ({
-              year: milestone.year,
-              event: milestone.title
-            }))
-            .sort((a: any, b: any) => parseInt(a.year) - parseInt(b.year)); // Sort by year
-          
-          if (displayTimeline.length > 0) {
-            setTimeline(displayTimeline);
-          }
-        } catch (error) {
-          console.error('Error parsing milestones:', error);
-        }
-      }
-    };
-
-    // Load certificates from localStorage
-    const loadCertificates = () => {
-      const savedCertificates = localStorage.getItem('certificates');
-      if (savedCertificates) {
-        try {
-          const parsedCertificates = JSON.parse(savedCertificates);
-          // Filter out empty certificates and format for display
-          const displayCertificates = parsedCertificates
-            .filter((cert: any) => cert.name && cert.name.trim())
-            .map((cert: any) => ({
-              id: cert.id,
-              name: cert.name,
-              issuer: cert.issuer || 'Belirtilmemiş',
-              date: cert.date || new Date().toISOString().split('T')[0],
-              file: cert.file || ''
-            }));
-          
-          if (displayCertificates.length > 0) {
-            setCertificates(displayCertificates);
-          }
-        } catch (error) {
-          console.error('Error parsing certificates:', error);
-        }
-      }
-    };
-
-    // Load about data from localStorage
-    const loadAboutData = () => {
-      const savedAboutData = localStorage.getItem('about-data');
-      if (savedAboutData) {
-        try {
-          const parsedAboutData = JSON.parse(savedAboutData);
-          setAboutData({
-            storyTitle: parsedAboutData.storyTitle || 'Başarı Hikayemiz',
-            storyDescription1: parsedAboutData.storyDescription1 || aboutData.storyDescription1,
-            storyDescription2: parsedAboutData.storyDescription2 || aboutData.storyDescription2,
-            storyLocation: parsedAboutData.storyLocation || aboutData.storyLocation,
-            heroTitle: parsedAboutData.heroTitle || 'Hakkımızda',
-            heroDescription: parsedAboutData.heroDescription || '2008 yılından bu yana ısı sistemleri alanında güvenilir çözümler sunuyoruz'
-          });
-        } catch (error) {
-          console.error('Error parsing about data:', error);
-        }
-      }
-    };
-
-    // Load initially
     loadTeamMembers();
-    loadTimeline();
-    loadCertificates();
-    loadAboutData();
-
-    // Listen for localStorage changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'team-members') {
-        loadTeamMembers();
-      } else if (e.key === 'milestones') {
-        loadTimeline();
-      } else if (e.key === 'certificates') {
-        loadCertificates();
-      } else if (e.key === 'about-data') {
-        loadAboutData();
-      }
-    };
-
-    // Listen for custom events (for same-tab updates)
-    const handleTeamUpdate = () => {
-      loadTeamMembers();
-    };
-
-    const handleTimelineUpdate = () => {
-      loadTimeline();
-    };
-
-    const handleCertificatesUpdate = () => {
-      loadCertificates();
-    };
-
-    const handleAboutDataUpdate = () => {
-      loadAboutData();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('teamMembersUpdated', handleTeamUpdate);
-    window.addEventListener('timelineUpdated', handleTimelineUpdate);
-    window.addEventListener('certificatesUpdated', handleCertificatesUpdate);
-    window.addEventListener('aboutDataUpdated', handleAboutDataUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('teamMembersUpdated', handleTeamUpdate);
-      window.removeEventListener('timelineUpdated', handleTimelineUpdate);
-      window.removeEventListener('certificatesUpdated', handleCertificatesUpdate);
-      window.removeEventListener('aboutDataUpdated', handleAboutDataUpdate);
-    };
   }, []);
 
   // Certificates state - will be updated from localStorage

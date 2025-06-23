@@ -27,48 +27,13 @@ export default function TestTeamPage() {
   const [lastUpdate, setLastUpdate] = useState<string>('');
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const loadTeamMembers = () => {
-      const saved = localStorage.getItem('team-members');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setTeamMembers(parsed);
-          setLastUpdate(new Date().toLocaleTimeString());
-        } catch (error) {
-          console.error('Error parsing team members:', error);
-        }
-      }
-    };
-
-    // Load initially
-    loadTeamMembers();
-
-    // Listen for changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'team-members') {
-        loadTeamMembers();
-      }
-    };
-
-    const handleTeamUpdate = () => {
-      loadTeamMembers();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('teamMembersUpdated', handleTeamUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('teamMembersUpdated', handleTeamUpdate);
-    };
+    // No localStorage usage - team members loaded from default state
+    setLastUpdate(new Date().toLocaleTimeString());
   }, []);
 
   const clearStorage = () => {
-    localStorage.removeItem('team-members');
     setTeamMembers([]);
-    window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
+    setLastUpdate(new Date().toLocaleTimeString());
   };
 
   return (

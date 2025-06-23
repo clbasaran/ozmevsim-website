@@ -29,27 +29,6 @@ export default function IletisimPage() {
       });
       
       if (response.ok) {
-        const result = await response.json();
-        
-        // Mesajı localStorage'a da kaydet (admin panel için)
-        const messageData = {
-          id: result.data?.id || Date.now().toString(),
-          ...formData,
-          date: new Date().toISOString(),
-          status: 'unread',
-          createdAt: new Date().toISOString()
-        };
-
-        // Mevcut mesajları al
-        const existingMessages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
-        const updatedMessages = [messageData, ...existingMessages];
-        
-        // Güncellenen mesajları kaydet
-        localStorage.setItem('contactMessages', JSON.stringify(updatedMessages));
-        
-        // ozmevsim_contact_messages olarak da kaydet (admin panel uyumluluğu için)
-        localStorage.setItem('ozmevsim_contact_messages', JSON.stringify(updatedMessages));
-        
         // Form temizle
         setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
         
@@ -61,30 +40,7 @@ export default function IletisimPage() {
       
     } catch (error) {
       console.error('Message send error:', error);
-      
-      // API başarısız olursa sadece localStorage'a kaydet
-      try {
-        const messageData = {
-          id: Date.now().toString(),
-          ...formData,
-          date: new Date().toISOString(),
-          status: 'unread',
-          createdAt: new Date().toISOString()
-        };
-
-        const existingMessages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
-        const updatedMessages = [messageData, ...existingMessages];
-        
-        localStorage.setItem('contactMessages', JSON.stringify(updatedMessages));
-        localStorage.setItem('ozmevsim_contact_messages', JSON.stringify(updatedMessages));
-        
-        setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-        alert('Mesajınız başarıyla kaydedildi! En kısa sürede size dönüş yapacağız.');
-        
-      } catch (storageError) {
-        console.error('Storage error:', storageError);
-        alert('Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
-      }
+      alert('Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
     }
   };
 

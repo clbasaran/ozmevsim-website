@@ -197,108 +197,80 @@ export default function AdminAboutPage() {
 
   const [newValue, setNewValue] = useState('');
 
-  // Load data from localStorage and save initial data
+  // Load data from API
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      // Load team members from localStorage or save initial data
-      const savedTeamMembers = localStorage.getItem('team-members');
-      if (savedTeamMembers) {
-        const parsedMembers = JSON.parse(savedTeamMembers);
-        setTeamMembers(parsedMembers);
-      } else {
-        // Save initial team members
-        localStorage.setItem('team-members', JSON.stringify(teamMembers));
-      }
-
-      // Load milestones from localStorage or save initial data
-      const savedMilestones = localStorage.getItem('milestones');
-      if (savedMilestones) {
-        const parsedMilestones = JSON.parse(savedMilestones);
-        setMilestones(parsedMilestones);
-      } else {
-        // Save initial milestones if none exist
-        const initialMilestones: Milestone[] = [
-          { id: '1', year: '2008', title: 'Şirket kuruldu', description: 'Öz Mevsim Isı Sistemleri kuruldu' },
-          { id: '2', year: '2010', title: 'İlk 100 proje tamamlandı', description: 'Başarılı bir şekilde ilk 100 projemizi tamamladık' },
-          { id: '3', year: '2013', title: 'ISO 9001 belgesi alındı', description: 'Kalite yönetim sistemi belgesi aldık' },
-          { id: '4', year: '2016', title: '1000. proje milestone\'u', description: 'Binyinci projemizi başarıyla tamamladık' },
-          { id: '5', year: '2019', title: 'Yeni ofis ve depo açılışı', description: 'Büyüyen ekibimiz için yeni ofisimizi açtık' },
-          { id: '6', year: '2021', title: 'Dijital dönüşüm başladı', description: 'Teknolojik altyapımızı modernize ettik' },
-          { id: '7', year: '2023', title: '2500+ proje tamamlandı', description: 'Bugüne kadar 2500\'den fazla projeyi başarıyla tamamladık' },
-        ];
-        setMilestones(initialMilestones);
-        localStorage.setItem('milestones', JSON.stringify(initialMilestones));
-      }
-
-      // Load certificates from localStorage or save initial data
-      const savedCertificates = localStorage.getItem('certificates');
-      if (savedCertificates) {
-        const parsedCertificates = JSON.parse(savedCertificates);
-        setCertificates(parsedCertificates);
-      } else {
-        // Save initial certificates if none exist
-        const initialCertificates: Certificate[] = [
-          {
-            id: '1',
-            name: 'ISO 9001:2015 Kalite Yönetim Sistemi',
-            file: '/documents/iso-9001.pdf',
-            issuer: 'TSE',
-            date: '2020-06-15'
-          },
-          {
-            id: '2',
-            name: 'HVAC Teknik Yeterlilik Belgesi',
-            file: '/documents/hvac-certificate.pdf',
-            issuer: 'Enerji Bakanlığı',
-            date: '2019-03-20'
-          },
-          {
-            id: '3',
-            name: 'Yetkili Servis Belgesi',
-            file: '/documents/authorized-service.pdf',
-            issuer: 'Sanayi ve Teknoloji Bakanlığı',
-            date: '2018-09-10'
-          },
-          {
-            id: '4',
-            name: 'İş Sağlığı ve Güvenliği Belgesi',
-            file: '/documents/work-safety.pdf',
-            issuer: 'Çalışma ve Sosyal Güvenlik Bakanlığı',
-            date: '2021-04-05'
-          },
-          {
-            id: '5',
-            name: 'Çevre Yönetim Sistemi ISO 14001',
-            file: '/documents/iso-14001.pdf',
-            issuer: 'TSE',
-            date: '2022-01-20'
-          },
-          {
-            id: '6',
-            name: 'EPDK Doğalgaz Kurulum Yetki Belgesi',
-            file: '/documents/epdk-license.pdf',
-            issuer: 'EPDK',
-            date: '2017-11-15'
+    const loadTeamMembers = async () => {
+      try {
+        const response = await fetch('/api/team');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setTeamMembers(result.data);
           }
-        ];
-        setCertificates(initialCertificates);
-        localStorage.setItem('certificates', JSON.stringify(initialCertificates));
+        }
+      } catch (error) {
+        console.error('Failed to load team members:', error);
       }
+    };
 
-      // Load about data
-      const savedAboutData = localStorage.getItem('about-data');
-      if (savedAboutData) {
-        const parsedData = JSON.parse(savedAboutData);
-        setAboutData(parsedData);
-      } else {
-        // Save initial about data
-        localStorage.setItem('about-data', JSON.stringify(aboutData));
-      }
-    } catch (error) {
-      console.error('Error loading data from localStorage:', error);
-    }
+    const loadData = async () => {
+      await loadTeamMembers();
+
+      // Set default milestones
+      const initialMilestones: Milestone[] = [
+        { id: '1', year: '2008', title: 'Şirket kuruldu', description: 'Öz Mevsim Isı Sistemleri kuruldu' },
+        { id: '2', year: '2010', title: 'İlk 100 proje tamamlandı', description: 'Başarılı bir şekilde ilk 100 projemizi tamamladık' },
+        { id: '3', year: '2013', title: 'ISO 9001 belgesi alındı', description: 'Kalite yönetim sistemi belgesi aldık' },
+        { id: '4', year: '2016', title: '1000. proje milestone\'u', description: 'Binyinci projemizi başarıyla tamamladık' },
+        { id: '5', year: '2019', title: 'Yeni ofis ve depo açılışı', description: 'Büyüyen ekibimiz için yeni ofisimizi açtık' },
+        { id: '6', year: '2021', title: 'Dijital dönüşüm başladı', description: 'Teknolojik altyapımızı modernize ettik' },
+        { id: '7', year: '2023', title: '2500+ proje tamamlandı', description: 'Bugüne kadar 2500\'den fazla projeyi başarıyla tamamladık' },
+      ];
+      setMilestones(initialMilestones);
+
+      // Set default certificates
+      const defaultCertificates: Certificate[] = [
+        {
+          id: '1',
+          name: 'ISO 9001:2015 Kalite Yönetim Sistemi',
+          file: '',
+          issuer: 'TSE',
+          date: '2020-06-15'
+        },
+        {
+          id: '2',
+          name: 'HVAC Teknik Yeterlilik Belgesi',
+          file: '',
+          issuer: 'Enerji Bakanlığı',
+          date: '2019-03-20'
+        }
+      ];
+      setCertificates(defaultCertificates);
+
+      // Set default about data
+      const defaultAboutData: AboutData = {
+        title: 'Hakkımızda',
+        content: 'Öz Mevsim olarak sektörde uzun yılların deneyimi ile hizmet veriyoruz.',
+        mission: 'Müşterilerimize en kaliteli hizmeti sunmak',
+        vision: 'Sektörün lider firması olmak',
+        values: ['Kalite', 'Güven', 'Müşteri Memnuniyeti'],
+        foundedYear: '2008',
+        employeeCount: '45+',
+        locations: ['İstanbul', 'Ankara'],
+        metaTitle: 'Hakkımızda - Öz Mevsim',
+        metaDescription: 'Öz Mevsim hakkında detaylı bilgiler',
+        lastModified: new Date().toISOString(),
+        storyTitle: 'Başarı Hikayemiz',
+        storyDescription1: 'Öz Mevsim Isı Sistemleri, 2008 yılında küçük bir ekip ile başladığı yolculuğunda bugün 45+ uzman personeliyle İstanbul\'un önde gelen ısı sistemleri şirketlerinden biri haline gelmiştir.',
+        storyDescription2: '15 yılı aşkın deneyimimizle 2500\'den fazla projeyi başarıyla tamamladık. Kombi sistemlerinden klima kurulumlarına, doğalgaz tesisatından enerji verimliliği çözümlerine kadar geniş bir yelpazede hizmet sunuyoruz.',
+        storyLocation: 'İstanbul merkezli, Türkiye geneli hizmet',
+        heroTitle: 'Hakkımızda',
+        heroDescription: '2008 yılından bu yana ısı sistemleri alanında güvenilir çözümler sunuyoruz'
+      };
+      setAboutData(defaultAboutData);
+    };
+
+    loadData();
   }, []);
 
   // Auto-save functionality
@@ -316,17 +288,7 @@ export default function AdminAboutPage() {
 
   const handleAutoSave = () => {
     if (isEditing) {
-      localStorage.setItem('about-data', JSON.stringify(aboutData));
-      localStorage.setItem('team-members', JSON.stringify(teamMembers));
-      localStorage.setItem('milestones', JSON.stringify(milestones));
-      localStorage.setItem('certificates', JSON.stringify(certificates));
-      
-      // Dispatch custom events for updates
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
-        window.dispatchEvent(new CustomEvent('aboutDataUpdated'));
-      }
-      
+      // Auto-save is now handled by individual API calls
       setLastSaved(new Date());
     }
   };
@@ -334,23 +296,7 @@ export default function AdminAboutPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      localStorage.setItem('about-data', JSON.stringify({
-        ...aboutData,
-        lastModified: new Date().toISOString()
-      }));
-      localStorage.setItem('team-members', JSON.stringify(teamMembers));
-      localStorage.setItem('milestones', JSON.stringify(milestones));
-      localStorage.setItem('certificates', JSON.stringify(certificates));
-      
-      // Dispatch custom events for updates
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
-        window.dispatchEvent(new CustomEvent('aboutDataUpdated'));
-      }
-      
+      // Data is already saved via individual API calls
       setLastSaved(new Date());
       setIsEditing(false);
       
@@ -380,7 +326,7 @@ export default function AdminAboutPage() {
     }));
   };
 
-  const addTeamMember = () => {
+  const addTeamMember = async () => {
     const newMember: TeamMember = {
       id: Date.now().toString(),
       name: '',
@@ -391,19 +337,26 @@ export default function AdminAboutPage() {
       linkedin: '',
       twitter: ''
     };
-    const updatedMembers = [...teamMembers, newMember];
-    setTeamMembers(updatedMembers);
     
-    // Save to localStorage immediately
-    localStorage.setItem('team-members', JSON.stringify(updatedMembers));
-    
-    // Dispatch custom event for team members update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
+    try {
+      const response = await fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMember)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setTeamMembers(prev => [...prev, result.data]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to add team member:', error);
     }
   };
 
-  const updateTeamMember = (id: string, field: keyof TeamMember, value: string) => {
+  const updateTeamMember = async (id: string, field: keyof TeamMember, value: string) => {
     const updatedMembers = teamMembers.map(member => {
       if (member.id === id) {
         let updatedValue: any = value;
@@ -424,25 +377,32 @@ export default function AdminAboutPage() {
     
     setTeamMembers(updatedMembers);
     
-    // Save to localStorage immediately
-    localStorage.setItem('team-members', JSON.stringify(updatedMembers));
-    
-    // Dispatch custom event for team members update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
+    // Update via API
+    try {
+      const memberToUpdate = updatedMembers.find(m => m.id === id);
+      if (memberToUpdate) {
+        await fetch('/api/team', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(memberToUpdate)
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update team member:', error);
     }
   };
 
-  const removeTeamMember = (id: string) => {
-    const updatedMembers = teamMembers.filter(member => member.id !== id);
-    setTeamMembers(updatedMembers);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('team-members', JSON.stringify(updatedMembers));
-    
-    // Dispatch custom event for team members update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
+  const removeTeamMember = async (id: string) => {
+    try {
+      const response = await fetch(`/api/team?id=${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        setTeamMembers(prev => prev.filter(member => member.id !== id));
+      }
+    } catch (error) {
+      console.error('Failed to remove team member:', error);
     }
   };
 
@@ -455,14 +415,6 @@ export default function AdminAboutPage() {
     };
     const updatedMilestones = [...milestones, newMilestone];
     setMilestones(updatedMilestones);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('milestones', JSON.stringify(updatedMilestones));
-    
-    // Dispatch custom event for timeline update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('timelineUpdated'));
-    }
   };
 
   const updateMilestone = (id: string, field: keyof Milestone, value: string) => {
@@ -470,27 +422,11 @@ export default function AdminAboutPage() {
       milestone.id === id ? { ...milestone, [field]: value } : milestone
     );
     setMilestones(updatedMilestones);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('milestones', JSON.stringify(updatedMilestones));
-    
-    // Dispatch custom event for timeline update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('timelineUpdated'));
-    }
   };
 
   const removeMilestone = (id: string) => {
     const updatedMilestones = milestones.filter(milestone => milestone.id !== id);
     setMilestones(updatedMilestones);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('milestones', JSON.stringify(updatedMilestones));
-    
-    // Dispatch custom event for timeline update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('timelineUpdated'));
-    }
   };
 
   const addCertificate = () => {
@@ -503,14 +439,6 @@ export default function AdminAboutPage() {
     };
     const updatedCertificates = [...certificates, newCertificate];
     setCertificates(updatedCertificates);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
-    
-    // Dispatch custom event for certificates update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('certificatesUpdated'));
-    }
   };
 
   const updateCertificate = (id: string, field: keyof Certificate, value: string) => {
@@ -518,27 +446,11 @@ export default function AdminAboutPage() {
       cert.id === id ? { ...cert, [field]: value } : cert
     );
     setCertificates(updatedCertificates);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
-    
-    // Dispatch custom event for certificates update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('certificatesUpdated'));
-    }
   };
 
   const removeCertificate = (id: string) => {
     const updatedCertificates = certificates.filter(cert => cert.id !== id);
     setCertificates(updatedCertificates);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
-    
-    // Dispatch custom event for certificates update
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('certificatesUpdated'));
-    }
   };
 
   const tabs = [

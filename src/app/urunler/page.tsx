@@ -1,37 +1,62 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { products, categories, brands, getProductsByCategory, getProductsByBrand, searchProducts } from '@/data/products';
+import { getProducts } from '@/lib/data';
 import { Search, Filter, ShoppingCart, Star, Tag, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  category: string;
+  brand: string;
+  features: string[];
+  isActive: boolean;
+  featured?: boolean;
+  inStock?: boolean;
+}
+
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('Tümü');
   const [selectedBrand, setSelectedBrand] = useState('Tümü');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [filteredProductList, setFilteredProductList] = useState(products);
 
-  // Get deleted product IDs from localStorage
-  const getDeletedProductIds = (): string[] => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const deleted = localStorage.getItem('ozmevsim_deleted_products');
-      return deleted ? JSON.parse(deleted) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  // Filter products excluding deleted ones on mount
+  // Load products from D1 database
   useEffect(() => {
-    const deletedIds = getDeletedProductIds();
-    const allProducts = products.filter(product => !deletedIds.includes(product.id));
-    setFilteredProductList(allProducts);
+    const loadProducts = async () => {
+      try {
+        setIsLoading(true);
+        const productsData = await getProducts();
+        setProducts(productsData.filter(p => p.isActive));
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProducts();
   }, []);
+
+  // Get unique categories and brands from loaded products
+  const categories = useMemo(() => {
+    const uniqueCategories = ['Tümü', ...Array.from(new Set(products.map(p => p.category)))];
+    return uniqueCategories;
+  }, [products]);
+
+  const brands = useMemo(() => {
+    const uniqueBrands = ['Tümü', ...Array.from(new Set(products.map(p => p.brand)))];
+    return uniqueBrands;
+  }, [products]);
 
   // WhatsApp redirect function
   const handleWhatsAppRedirect = (productName: string) => {
@@ -43,7 +68,7 @@ export default function ProductsPage() {
   };
 
   const filteredProducts = useMemo(() => {
-    let filtered = filteredProductList;
+    let filtered = products;
 
     // Search filter
     if (searchQuery) {
@@ -66,7 +91,22 @@ export default function ProductsPage() {
     }
 
     return filtered;
-  }, [selectedCategory, selectedBrand, searchQuery, filteredProductList]);
+  }, [selectedCategory, selectedBrand, searchQuery, products]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900">
+        <Header />
+        <div className="pt-32 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-white">Ürünler yükleniyor...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">

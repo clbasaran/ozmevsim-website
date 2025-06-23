@@ -150,26 +150,30 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, ...updateData } = body;
 
-    const faqIndex = faqs.findIndex(faq => faq.id === id);
-    if (faqIndex === -1) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, error: 'FAQ not found' },
-        { status: 404 }
+        { success: false, error: 'FAQ ID is required' },
+        { status: 400 }
       );
     }
 
-    faqs[faqIndex] = {
-      ...faqs[faqIndex],
-      ...updateData,
-      updatedAt: new Date().toISOString()
-    };
+    const dbService = createDatabaseService();
+    if (!dbService) {
+      throw new Error('Database not available');
+    }
+
+    const result = await dbService.updateFAQ(parseInt(id), updateData);
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to update FAQ');
+    }
 
     return NextResponse.json({
       success: true,
-      data: faqs[faqIndex],
       message: 'FAQ updated successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('FAQ PUT API Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update FAQ' },
       { status: 500 }
@@ -189,15 +193,16 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const faqIndex = faqs.findIndex(faq => faq.id === id);
-    if (faqIndex === -1) {
-      return NextResponse.json(
-        { success: false, error: 'FAQ not found' },
-        { status: 404 }
-      );
+    const dbService = createDatabaseService();
+    if (!dbService) {
+      throw new Error('Database not available');
     }
 
-    faqs.splice(faqIndex, 1);
+    const result = await dbService.deleteFAQ(parseInt(id));
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to delete FAQ');
+    }
 
     return NextResponse.json({
       success: true,

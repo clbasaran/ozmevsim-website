@@ -177,23 +177,20 @@ const AdminDashboard = () => {
         console.log('Contact API error:', error);
       }
 
-      // Get data from localStorage for other content
+      // Get products data from API
       let productsData = [];
-      let referencesData = [];
-      let contactInfo = {};
-      
-      if (typeof window !== 'undefined') {
-        try {
-          productsData = JSON.parse(localStorage.getItem('ozmevsim_products') || '[]');
-          referencesData = JSON.parse(localStorage.getItem('ozmevsim_references') || '[]');
-          contactInfo = JSON.parse(localStorage.getItem('ozmevsim_contact_info') || '{}');
-        } catch (error) {
-          console.error('Error reading localStorage in dashboard:', error);
+      try {
+        const productsResponse = await fetch('/api/products');
+        if (productsResponse.ok) {
+          const productsResult = await productsResponse.json();
+          productsData = productsResult.success ? productsResult.data : [];
         }
+      } catch (error) {
+        console.log('Products API error:', error);
       }
 
       // Calculate real statistics
-      const totalContent = blogData.length + faqData.length + testimonialsData.length + productsData.length + referencesData.length;
+      const totalContent = blogData.length + faqData.length + testimonialsData.length + productsData.length;
       const publishedBlogPosts = blogData.filter((post: any) => post.status === 'published').length;
       const activeFaqs = faqData.filter((faq: any) => faq.isActive !== false).length;
       const approvedTestimonials = testimonialsData.filter((testimonial: any) => testimonial.status === 'approved').length;

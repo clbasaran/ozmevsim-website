@@ -1,4 +1,4 @@
-// File: /app/src/app/api/contact/route.ts
+// File: /Users/celalbasaran/Desktop/deploy last/ozmevsim-website/src/app/api/contact/route.ts
 import * as entry from '../../../../../src/app/api/contact/route.js'
 import type { NextRequest } from 'next/server.js'
 

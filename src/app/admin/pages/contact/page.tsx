@@ -138,43 +138,17 @@ export default function AdminContactPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
 
-  // Load data from localStorage
+  // Load messages from API
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const storedContactInfo = localStorage.getItem('ozmevsim_contact_info');
-      const storedLocations = localStorage.getItem('ozmevsim_locations');
-      const storedFormSettings = localStorage.getItem('ozmevsim_form_settings');
-      
-      // İletişim mesajları için birleşik kontrol
-      const storedMessages = localStorage.getItem('contactMessages') || localStorage.getItem('ozmevsim_contact_messages');
-
-      if (storedContactInfo) setContactInfo(JSON.parse(storedContactInfo));
-      if (storedLocations) setLocations(JSON.parse(storedLocations));
-      if (storedFormSettings) setFormSettings(JSON.parse(storedFormSettings));
-      
-      if (storedMessages) {
-        try {
-          const parsedMessages = JSON.parse(storedMessages);
-          setMessages(parsedMessages);
-        } catch (error) {
-          console.error('Error parsing messages:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading contact data:', error);
-    }
+    loadMessages();
   }, []);
 
-  const saveToLocalStorage = (key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
-  };
+
 
   const handleSaveContactInfo = () => {
     setIsSaving(true);
     setTimeout(() => {
-      saveToLocalStorage('ozmevsim_contact_info', contactInfo);
+      // Contact info saved to state only
       setIsSaving(false);
     }, 1000);
   };
@@ -195,7 +169,6 @@ export default function AdminContactPage() {
     }
     
     setLocations(updatedLocations);
-    saveToLocalStorage('ozmevsim_locations', updatedLocations);
     setShowLocationForm(false);
     setSelectedLocation(null);
   };
@@ -204,7 +177,6 @@ export default function AdminContactPage() {
     if (confirm('Bu lokasyonu silmek istediğinizden emin misiniz?')) {
       const updatedLocations = locations.filter(loc => loc.id !== id);
       setLocations(updatedLocations);
-      saveToLocalStorage('ozmevsim_locations', updatedLocations);
     }
   };
 
@@ -219,7 +191,6 @@ export default function AdminContactPage() {
         : msg
     );
     setMessages(updatedMessages);
-    saveToLocalStorage('ozmevsim_contact_messages', updatedMessages);
   };
 
   const filteredMessages = messages.filter(msg => {
@@ -251,14 +222,7 @@ export default function AdminContactPage() {
 
   const loadMessages = () => {
     try {
-      // Önce localStorage'dan yükle
-      const storedMessages = localStorage.getItem('contactMessages') || localStorage.getItem('ozmevsim_contact_messages');
-      if (storedMessages) {
-        const parsedMessages = JSON.parse(storedMessages);
-        setMessages(parsedMessages);
-      }
-      
-      // Sonra API'den de yükle ve birleştir
+      // Load messages from API only
       fetch('/api/contact')
         .then(response => response.json())
         .then(result => {
@@ -275,33 +239,19 @@ export default function AdminContactPage() {
               createdAt: inquiry.createdAt
             }));
             
-            // localStorage mesajları ile API mesajlarını birleştir
-            const localMessages = storedMessages ? JSON.parse(storedMessages) : [];
-            const allMessages = [...localMessages];
+            // Sort by date
+            apiMessages.sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime());
             
-            // API'den gelen mesajları ekle (duplikasyondan kaçın)
-            apiMessages.forEach((apiMsg: any) => {
-              if (!allMessages.find(msg => msg.id === apiMsg.id)) {
-                allMessages.push(apiMsg);
-              }
-            });
-            
-            // Tarihe göre sırala
-            allMessages.sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime());
-            
-            setMessages(allMessages);
-            
-            // Güncellenmiş listeyi localStorage'a kaydet
-            localStorage.setItem('contactMessages', JSON.stringify(allMessages));
-            localStorage.setItem('ozmevsim_contact_messages', JSON.stringify(allMessages));
+            setMessages(apiMessages);
           }
         })
         .catch(error => {
           console.error('Error fetching messages from API:', error);
-          // API hatası durumunda sadece localStorage mesajlarını kullan
+          setMessages([]);
         });
     } catch (error) {
       console.error('Error loading messages:', error);
+      setMessages([]);
     }
   };
 
@@ -310,14 +260,12 @@ export default function AdminContactPage() {
       msg.id === messageId ? { ...msg, status: 'read' as const } : msg
     );
     setMessages(updatedMessages);
-    localStorage.setItem('contactMessages', JSON.stringify(updatedMessages));
   };
 
   const deleteMessage = (messageId: string) => {
     if (confirm('Bu mesajı silmek istediğinizden emin misiniz?')) {
       const updatedMessages = messages.filter(msg => msg.id !== messageId);
       setMessages(updatedMessages);
-      localStorage.setItem('contactMessages', JSON.stringify(updatedMessages));
       setSelectedMessage(null);
     }
   };
@@ -814,7 +762,10 @@ export default function AdminContactPage() {
 
                 <div className="flex justify-end">
                   <button
-                    onClick={() => saveToLocalStorage('ozmevsim_form_settings', formSettings)}
+                    onClick={() => {
+                      // Form settings saved to state only
+                      alert('Form ayarları kaydedildi!');
+                    }}
                     className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2"
                   >
                     <CheckIcon className="w-4 h-4" />

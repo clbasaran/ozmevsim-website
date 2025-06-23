@@ -241,99 +241,32 @@ export default function AdminHomePage() {
     return () => window.removeEventListener('heroSlidesUpdated', handleHeroSlidesUpdated);
   }, []);
 
-  // Load other data from localStorage
+  // Load default data only
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const savedServices = localStorage.getItem('homeServices');
-      if (savedServices) {
-        setServices(JSON.parse(savedServices));
-      } else {
-        setServices(defaultServices);
-      }
-
-      const savedStats = localStorage.getItem('homeStats');
-      if (savedStats) {
-        console.log('Loading stats from localStorage:', JSON.parse(savedStats));
-        setStats(JSON.parse(savedStats));
-      } else {
-        console.log('Loading default stats:', defaultStats);
-        setStats(defaultStats);
-      }
-
-      const savedTestimonials = localStorage.getItem('homeTestimonials');
-      if (savedTestimonials) {
-        setTestimonials(JSON.parse(savedTestimonials));
-      } else {
-        setTestimonials(defaultTestimonials);
-      }
-
-      const savedSettings = localStorage.getItem('homeSettings');
-      if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
-      } else {
-        setSettings(defaultSettings);
-      }
-    } catch (error) {
-      console.error('Error loading data from localStorage:', error);
-      // Fallback to defaults on error
-      setServices(defaultServices);
-      setStats(defaultStats);
-      setTestimonials(defaultTestimonials);
-      setSettings(defaultSettings);
-    }
+    setServices(defaultServices);
+    setStats(defaultStats);
+    setTestimonials(defaultTestimonials);
+    setSettings(defaultSettings);
   }, []);
 
-  // Save services to localStorage when they change
+  // Services saved to state only
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (services.length > 0) {
-      try {
-        localStorage.setItem('homeServices', JSON.stringify(services));
-      } catch (error) {
-        console.error('Error saving services:', error);
-      }
-    }
+    // Services are managed in state only
   }, [services]);
 
-  // Save stats to localStorage when they change
+  // Stats saved to state only
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (stats.length > 0) {
-      try {
-        console.log('Saving stats to localStorage:', stats);
-        localStorage.setItem('homeStats', JSON.stringify(stats));
-        // Trigger event to update frontend
-        window.dispatchEvent(new Event('statsUpdated'));
-      } catch (error) {
-        console.error('Error saving stats:', error);
-      }
-    }
+    // Stats are managed in state only
   }, [stats]);
 
-  // Save testimonials to localStorage when they change
+  // Testimonials saved to state only
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (testimonials.length > 0) {
-      try {
-        localStorage.setItem('homeTestimonials', JSON.stringify(testimonials));
-      } catch (error) {
-        console.error('Error saving testimonials:', error);
-      }
-    }
+    // Testimonials are managed in state only
   }, [testimonials]);
 
-  // Save settings to localStorage when they change
+  // Settings saved to state only
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (settings.heroTitle || settings.aboutTitle || settings.servicesTitle) {
-      try {
-        localStorage.setItem('homeSettings', JSON.stringify(settings));
-      } catch (error) {
-        console.error('Error saving settings:', error);
-      }
-    }
+    // Settings are managed in state only
   }, [settings]);
 
   const handleSaveSlide = (slideData: AdminHeroSlide) => {
@@ -754,7 +687,6 @@ export default function AdminHomePage() {
                   };
                   
                   setSettings(newSettings);
-                  localStorage.setItem('homeSettings', JSON.stringify(newSettings));
                 }}
                 className="space-y-6"
               >

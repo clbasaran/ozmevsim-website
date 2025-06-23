@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/api/admin-sync":{},"/api/blog":{},"/api/contact":{},"/api/data-kv":{},"/api/media":{},"/api/products":{},"/api/faq":{},"/api/testimonials":{},"/api/upload-r2":{},"/api/upload":{},"/urunler/[id]":{}}}
+{"version":1,"functions":{"/api/admin-sync":{},"/api/blog":{},"/api/data-kv":{},"/api/contact":{},"/api/faq":{},"/api/media":{},"/api/products":{},"/api/upload-r2":{},"/api/testimonials":{},"/api/upload":{},"/urunler/[id]":{}}}

@@ -51,16 +51,34 @@ const HeroSection = () => {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load hero slides from data
+  // Load hero slides from API
   useEffect(() => {
-    try {
-      const heroSlides = getHeroSlides();
-      setSlides(heroSlides);
-    } catch (error) {
-      console.error('Failed to load hero slides:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    const loadHeroSlides = async () => {
+      try {
+        const response = await fetch('/api/hero-slides');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            const activeSlides = result.data.filter((slide: any) => slide.isActive);
+            setSlides(activeSlides);
+          }
+        } else {
+          // Fallback to default slides if API fails
+          console.log('API failed, using default slides');
+          const fallbackSlides = getHeroSlides();
+          setSlides(fallbackSlides);
+        }
+      } catch (error) {
+        console.error('Failed to load hero slides:', error);
+        // Fallback to default slides
+        const fallbackSlides = getHeroSlides();
+        setSlides(fallbackSlides);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHeroSlides();
   }, []);
 
   // Auto-play for hero slides

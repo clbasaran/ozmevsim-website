@@ -18,29 +18,20 @@ const ProductsSection = () => {
   const [filteredFeaturedProducts, setFilteredFeaturedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get deleted product IDs from localStorage
-  const getDeletedProductIds = (): string[] => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const deleted = localStorage.getItem('ozmevsim_deleted_products');
-      return deleted ? JSON.parse(deleted) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  // Load products from D1 or localStorage
+  // Load products from D1 database only
   useEffect(() => {
     const loadProducts = async () => {
       setIsLoading(true);
       try {
         const products = await getProducts();
-        const deletedIds = getDeletedProductIds();
         
-        // Filter out deleted products and show only featured ones
-        const filteredProducts = products
-          .filter(product => !deletedIds.includes(product.id.toString()))
-          .slice(0, 6); // Show max 6 products on homepage
+        // Show max 6 products on homepage
+        const filteredProducts = products.slice(0, 6);
+        
+        console.log('🔍 ProductsSection - Loaded products:', filteredProducts.map(p => ({ 
+          id: p.id, 
+          name: p.name
+        })));
         
         setFilteredFeaturedProducts(filteredProducts);
       } catch (error) {
@@ -66,7 +57,34 @@ const ProductsSection = () => {
 
   const filteredProducts = selectedCategory === 'Tümü' 
     ? filteredFeaturedProducts 
-    : filteredFeaturedProducts.filter(product => product.category === selectedCategory);
+    : filteredFeaturedProducts.filter(product => product?.category === selectedCategory);
+
+  if (isLoading) {
+    return (
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Premium Ürünlerimiz
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Ürünler yükleniyor...
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm p-6 animate-pulse">
+                <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded mb-4 w-3/4"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-gray-50">
@@ -113,8 +131,9 @@ const ProductsSection = () => {
         </motion.div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product, index) => (
+        {filteredProducts && filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 30 }}
@@ -126,8 +145,8 @@ const ProductsSection = () => {
               {/* Product Image */}
               <div className="relative h-64 bg-gray-50 overflow-hidden">
                 <img
-                  src={product.image}
-                  alt={product.name}
+                  src={product.image || 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'}
+                  alt={product.name || 'Ürün'}
                   className="object-contain p-6 group-hover:scale-105 transition-transform duration-300 w-full h-full"
                   loading="lazy"
                 />
@@ -147,24 +166,24 @@ const ProductsSection = () => {
               <div className="p-6">
                 {/* Brand & Category */}
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-blue-600">{product.brand}</span>
-                  <span className="text-sm text-gray-500">{product.category}</span>
+                  <span className="text-sm font-medium text-blue-600">{product.brand || 'Marka'}</span>
+                  <span className="text-sm text-gray-500">{product.category || 'Kategori'}</span>
                 </div>
 
                 {/* Product Name */}
                 <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  {product.name}
+                  {product.name || 'Ürün Adı'}
                 </h3>
 
                 {/* Description */}
                 <p className="text-gray-600 mb-4 line-clamp-2">
-                  {product.description}
+                  {product.description || 'Açıklama bulunmuyor.'}
                 </p>
 
                 {/* Features */}
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-2">
-                    {product.features.slice(0, 2).map((feature, index) => (
+                    {product.features && Array.isArray(product.features) && product.features.slice(0, 2).map((feature, index) => (
                       <span
                         key={index}
                         className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded"
@@ -172,7 +191,7 @@ const ProductsSection = () => {
                         {feature}
                       </span>
                     ))}
-                    {product.features.length > 2 && (
+                    {product.features && Array.isArray(product.features) && product.features.length > 2 && (
                       <span className="text-xs text-gray-500">
                         +{product.features.length - 2} özellik
                       </span>
@@ -204,6 +223,7 @@ const ProductsSection = () => {
                 <div className="flex gap-3">
                   <Link
                     href={`/urunler/${product.id}`}
+                    onClick={() => console.log('🔗 Clicking product link:', { id: product.id, name: product.name, href: `/urunler/${product.id}` })}
                     className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center"
                   >
                     Detayları Gör
@@ -211,7 +231,7 @@ const ProductsSection = () => {
                   <button
                     onClick={() => {
                       const phoneNumber = '+905324467367';
-                      const message = `Merhaba! ${product.name} ürünü için teklif almak istiyorum. Detaylı bilgi verir misiniz?`;
+                      const message = `Merhaba! ${product.name || 'Ürün'} ürünü için teklif almak istiyorum. Detaylı bilgi verir misiniz?`;
                       const encodedMessage = encodeURIComponent(message);
                       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
                       window.open(whatsappUrl, '_blank');
@@ -224,24 +244,31 @@ const ProductsSection = () => {
               </div>
             </motion.div>
           ))}
-        </div>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">Henüz ürün bulunmuyor.</p>
+          </div>
+        )}
 
         {/* View All Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <Link
-            href="/urunler"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-medium group"
+        {filteredProducts && filteredProducts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="text-center mt-12"
           >
-            Tüm Ürünleri Gör
-            <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </motion.div>
+            <Link
+              href="/urunler"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-medium group"
+            >
+              Tüm Ürünleri Gör
+              <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </motion.div>
+        )}
       </div>
     </section>
   );

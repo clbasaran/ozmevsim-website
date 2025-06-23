@@ -46,14 +46,17 @@ CREATE TABLE IF NOT EXISTS faqs (
 
 -- 4. Testimonials (Referanslar) Tablosu
 CREATE TABLE IF NOT EXISTS testimonials (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  title TEXT,
   company TEXT,
-  position TEXT,
   content TEXT NOT NULL,
   rating INTEGER DEFAULT 5,
-  avatar_url TEXT,
-  status TEXT DEFAULT 'active',
+  avatar TEXT,
+  location TEXT,
+  service TEXT NOT NULL,
+  featured BOOLEAN DEFAULT FALSE,
+  status TEXT DEFAULT 'published',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -62,14 +65,13 @@ CREATE TABLE IF NOT EXISTS testimonials (
 CREATE TABLE IF NOT EXISTS services (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
-  description TEXT,
-  icon TEXT,
-  features TEXT, -- JSON array as string
-  image_url TEXT,
-  status TEXT DEFAULT 'active',
-  order_index INTEGER DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  description TEXT NOT NULL,
+  icon TEXT DEFAULT 'cog',
+  features TEXT, -- JSON array
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 6. Contact Messages Tablosu
@@ -89,14 +91,24 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 CREATE TABLE IF NOT EXISTS team_members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  position TEXT,
+  position TEXT NOT NULL,
   bio TEXT,
-  avatar_url TEXT,
-  social_links TEXT, -- JSON object as string
+  photo TEXT,
+  email TEXT,
+  phone TEXT,
+  linkedin TEXT,
+  twitter TEXT,
+  experience TEXT,
+  education TEXT,
+  certifications TEXT, -- JSON array
+  specializations TEXT, -- JSON array
+  location TEXT,
+  languages TEXT, -- JSON array
+  achievements TEXT, -- JSON array
+  years_of_experience INTEGER DEFAULT 0,
   status TEXT DEFAULT 'active',
-  order_index INTEGER DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 8. Portfolio/Projects Tablosu
@@ -161,4 +173,41 @@ INSERT OR IGNORE INTO site_settings (key, value, type, category, description) VA
 ('contact_phone', '+90 532 XXX XX XX', 'text', 'contact', 'İletişim telefonu'),
 ('contact_address', 'İstanbul, Türkiye', 'text', 'contact', 'İletişim adresi'),
 ('hero_title', 'Konforlu Yaşamın Adresi', 'text', 'homepage', 'Ana sayfa hero başlığı'),
-('hero_subtitle', 'Modern ısıtma ve soğutma çözümleri', 'text', 'homepage', 'Ana sayfa hero alt başlığı'); 
+('hero_subtitle', 'Modern ısıtma ve soğutma çözümleri', 'text', 'homepage', 'Ana sayfa hero alt başlığı');
+
+-- References table
+CREATE TABLE IF NOT EXISTS references (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  client TEXT NOT NULL,
+  location TEXT,
+  category TEXT DEFAULT 'Genel',
+  completed_date TEXT,
+  image TEXT,
+  status TEXT DEFAULT 'active',
+  featured BOOLEAN DEFAULT FALSE,
+  rating INTEGER DEFAULT 5,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Hero Slides table
+CREATE TABLE IF NOT EXISTS hero_slides (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  subtitle TEXT NOT NULL,
+  description TEXT,
+  background_image TEXT,
+  stats TEXT, -- JSON array
+  primary_cta_text TEXT,
+  primary_cta_href TEXT,
+  secondary_cta_text TEXT,
+  secondary_cta_href TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+ 

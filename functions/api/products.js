@@ -1,5 +1,5 @@
-export default {
-  async fetch(request, env, ctx) {
+export async function onRequest(context) {
+  const { request, env } = context;
     // Handle CORS
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -175,5 +175,4 @@ export default {
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
-  }
-}; 
+  } 

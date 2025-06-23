@@ -73,47 +73,23 @@ export default function TeamSection() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<DisplayTeamMember | null>(null);
 
-  // Load team members from localStorage
+  // Load team members from API
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const loadTeamMembers = () => {
-      const savedTeamMembers = localStorage.getItem('team-members');
-      if (savedTeamMembers) {
-        try {
-          const parsedTeamMembers = JSON.parse(savedTeamMembers);
-          const validMembers = parsedTeamMembers.filter((member: TeamMember) => 
-            member.name && member.name.trim()
-          );
-          setTeamMembers(validMembers);
-        } catch (error) {
-          console.error('Error parsing team members:', error);
+    const loadTeamMembers = async () => {
+      try {
+        const response = await fetch('/api/team');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setTeamMembers(result.data);
+          }
         }
+      } catch (error) {
+        console.error('Failed to load team members:', error);
       }
     };
 
-    // Load initially
     loadTeamMembers();
-
-    // Listen for localStorage changes (cross-tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'team-members') {
-        loadTeamMembers();
-      }
-    };
-
-    // Listen for custom events (same-tab)
-    const handleTeamUpdate = () => {
-      loadTeamMembers();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('teamMembersUpdated', handleTeamUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('teamMembersUpdated', handleTeamUpdate);
-    };
   }, []);
 
   // Convert team members to display format with departments
@@ -258,8 +234,8 @@ export default function TeamSection() {
                       className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
                     />
                     <div className="absolute -bottom-1 -right-1">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${departments[member.department].color}`}>
-                        {React.createElement(departments[member.department].icon, { className: "h-3 w-3" })}
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${departments[member.department]?.color || 'bg-gray-100 text-gray-600'}`}>
+                        {departments[member.department]?.icon && React.createElement(departments[member.department].icon, { className: "h-3 w-3" })}
                       </span>
                     </div>
                   </div>
@@ -279,9 +255,9 @@ export default function TeamSection() {
 
                 {/* Department Badge */}
                 <div className="mb-4">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${departments[member.department].color}`}>
-                    {React.createElement(departments[member.department].icon, { className: "h-4 w-4 mr-1" })}
-                    {departments[member.department].name}
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${departments[member.department]?.color || 'bg-gray-100 text-gray-600'}`}>
+                    {departments[member.department]?.icon && React.createElement(departments[member.department].icon, { className: "h-4 w-4 mr-1" })}
+                    {departments[member.department]?.name || member.department}
                   </span>
                 </div>
 

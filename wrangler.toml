@@ -6,7 +6,7 @@ pages_build_output_dir = "out"
 [[d1_databases]]
 binding = "ozmevsim_d1"
 database_name = "ozmevsim-d1"
-database_id = "4c1116e3-067f-45c4-b51f-a0fc8dc6dc7c"
+database_id = "b8507b9b-4f7a-4acb-8fbf-ab1b09a14406"
 
 # Global KV namespace binding
 [[kv_namespaces]]
@@ -22,7 +22,7 @@ compatibility_date = "2024-01-01"
 [[env.production.d1_databases]]
 binding = "ozmevsim_d1"
 database_name = "ozmevsim-d1"
-database_id = "4c1116e3-067f-45c4-b51f-a0fc8dc6dc7c"
+database_id = "b8507b9b-4f7a-4acb-8fbf-ab1b09a14406"
 
 # Production KV namespace binding
 [[env.production.kv_namespaces]]

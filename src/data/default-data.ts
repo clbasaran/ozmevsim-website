@@ -49,189 +49,53 @@ export const STATIC_HERO_SLIDES = [
 export const STATIC_SERVICES = [
   {
     id: 1,
-    title: "Kombi Satış & Montaj",
-    description: "Baymak, Vaillant, Bosch gibi güvenilir markaların satış ve montaj hizmetleri.",
-    icon: "🔥",
-    features: [
-      "Ücretsiz keşif ve proje çizimi",
-      "Profesyonel montaj ekibi",
-      "2 yıl montaj garantisi",
-      "Düzenli bakım hizmeti"
-    ],
+    title: "Kombi Montajı",
+    description: "Profesyonel ekibimizle tüm marka kombilerin montajını gerçekleştiriyoruz.",
+    icon: "fire",
+    features: ["Uzman Montaj", "2 Yıl Garanti", "Ücretsiz Keşif"],
     isActive: true
   },
   {
     id: 2,
-    title: "Klima Sistemleri",
-    description: "Split, VRF ve merkezi klima sistemlerinin satış, montaj ve bakım hizmetleri.",
-    icon: "❄️",
-    features: [
-      "Enerji verimli modeller",
-      "Sessiz çalışma teknolojisi",
-      "Uzaktan kontrol sistemleri",
-      "Düzenli temizlik ve bakım"
-    ],
+    title: "Kombi Servisi",
+    description: "7/24 kombi arıza servisi ile acil durumlarınızda yanınızdayız.",
+    icon: "wrench",
+    features: ["7/24 Servis", "Hızlı Müdahale", "Orijinal Yedek Parça"],
     isActive: true
   },
   {
     id: 3,
-    title: "Doğalgaz Tesisatı",
-    description: "Güvenli ve standartlara uygun doğalgaz iç tesisat projeleri.",
-    icon: "⚡",
-    features: [
-      "TSE standartlarında montaj",
-      "Güvenlik kontrolleri",
-      "Belgeli ustalar",
-      "Sızdırmazlık testleri"
-    ],
+    title: "Klima Montajı",
+    description: "Split, multi split ve VRF klima sistemlerinin profesyonel montajı.",
+    icon: "snowflake",
+    features: ["Tüm Markalar", "Profesyonel Montaj", "Garanti"],
     isActive: true
   }
 ];
 
-// Updated products with your localStorage data
-export const STATIC_PRODUCTS = [
-  {
-    id: 1,
-    name: "Condens 1200W",
-    description: "Bosch Condens 1200W yoğuşmalı kombi, kompakt tasarım ve yüksek verimlilik sunar. Ev tipi kullanım için ideal.",
-    image: "/uploads/kombiler/bosch/codens 1200w.png",
-    category: "Kombi",
-    brand: "Bosch",
-    features: [
-      "Yoğuşmalı teknoloji",
-      "A+ enerji sınıfı", 
-      "Kompakt tasarım",
-      "Sessiz çalışma",
-      "Çevre dostu"
-    ],
-    isActive: true
-  },
-  {
-    id: 2,
-    name: "Condens 2200i",
-    description: "Bosch Condens 2200i akıllı kombi sistemi, modern teknoloji ve üstün performans ile öne çıkar.",
-    image: "/uploads/kombiler/bosch/codens 2200i.png",
-    category: "Kombi",
-    brand: "Bosch",
-    features: [
-      "Akıllı kontrol sistemi",
-      "A++ enerji sınıfı",
-      "ModBus bağlantısı",
-      "Uzaktan kontrol",
-      "Üstün performans"
-    ],
-    isActive: true
-  },
-  {
-    id: 5,
-    name: "Nitromix",
-    description: "DemirDöküm Nitromix kombi, nitro teknolojisi ile yüksek verimlilik ve temiz yanma sağlar.",
-    image: "/uploads/kombiler/demirdokum/nitromix.png",
-    category: "Kombi",
-    brand: "DemirDöküm",
-    features: [
-      "Nitro teknolojisi",
-      "Temiz yanma",
-      "Yüksek verimlilik",
-      "Uzun ömür",
-      "Ekonomik"
-    ],
-    isActive: true
-  },
-  {
-    id: 6,
-    name: "Nitromix Ioni",
-    description: "DemirDöküm Nitromix Ioni kombi, iyonik alev teknolojisi ile üstün performans ve enerji tasarrufu sunar.",
-    image: "/uploads/kombiler/demirdokum/nitromix ioni.png",
-    category: "Kombi",
-    brand: "DemirDöküm",
-    features: [
-      "İyonik alev teknolojisi",
-      "Üstün performans",
-      "Enerji tasarrufu",
-      "Çevve dostu",
-      "Akıllı sistem"
-    ],
-    isActive: true
-  },
-  {
-    id: 7,
-    name: "Nitromix Ioni Hero",
-    description: "DemirDöküm Nitromix Ioni Hero kombi, en gelişmiş teknoloji ile maksimum verimlilik ve konfor sağlar.",
-    image: "/uploads/kombiler/demirdokum/nitromix ioni hero.png",
-    category: "Kombi",
-    brand: "DemirDöküm",
-    features: [
-      "Hero teknolojisi",
-      "Maksimum verimlilik",
-      "İleri teknoloji",
-      "Premium konfor",
-      "Üstün kalite"
-    ],
-    isActive: true
-  },
+// NO STATIC PRODUCTS - All product data comes from D1 database
+export const STATIC_PRODUCTS: any[] = [];
 
-];
-
-export const STATIC_REFERENCES = [
-  {
-    id: 1,
-    title: "Ankara Büyükşehir Belediyesi",
-    description: "Belediye binası merkezi ısıtma sistemi modernizasyonu",
-    image: "/uploads/references/ankara-buyuksehir.jpg",
-    category: "Kurumsal",
-    completedDate: "2024-01-15",
-    isActive: true
-  },
-  {
-    id: 2,
-    title: "Çankaya Sitesi",
-    description: "240 daireli site kombi değişimi ve doğalgaz tesisatı yenileme",
-    image: "/uploads/references/cankaya-sitesi.jpg", 
-    category: "Konut",
-    completedDate: "2023-12-20",
-    isActive: true
-  }
-];
-
-// Production override functions
-export function getStaticData(key: string): any {
-  if (typeof window === 'undefined') {
-    // Server-side rendering - always use static data
-    switch (key) {
-      case 'ozmevsim_hero_slides':
-        return STATIC_HERO_SLIDES;
-      case 'ozmevsim_services':
-        return STATIC_SERVICES;
-      case 'ozmevsim_products':
-        return STATIC_PRODUCTS;
-      case 'ozmevsim_references':
-        return STATIC_REFERENCES;
-      default:
-        return null;
+// Helper function to get static data based on environment
+export function getStaticData(key: string) {
+  // Only return static data for production domains
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isProduction = hostname === 'ozmevsim.com' || hostname.includes('ozmevsim-website.pages.dev');
+    
+    if (isProduction) {
+      switch (key) {
+        case 'ozmevsim_hero_slides':
+          return STATIC_HERO_SLIDES;
+        case 'ozmevsim_services':
+          return STATIC_SERVICES;
+        case 'ozmevsim_products':
+          return STATIC_PRODUCTS; // Empty array - use D1 instead
+        default:
+          return null;
+      }
     }
   }
   
-  // Client-side - check environment
-  const isProduction = window.location.hostname === 'ozmevsim.com';
-  
-  if (isProduction) {
-    // Production: Use static data instead of localStorage
-    switch (key) {
-      case 'ozmevsim_hero_slides':
-        return STATIC_HERO_SLIDES;
-      case 'ozmevsim_services':
-        return STATIC_SERVICES;
-      case 'ozmevsim_products':
-        return STATIC_PRODUCTS;
-      case 'ozmevsim_references':
-        return STATIC_REFERENCES;
-      default:
-        return null;
-    }
-  } else {
-    // Development: Use localStorage
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : null;
-  }
+  return null;
 } 

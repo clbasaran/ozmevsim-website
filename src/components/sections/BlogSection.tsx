@@ -92,9 +92,30 @@ export default function BlogSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // For static deployment, use default data
-    setBlogPosts(defaultBlogPosts);
-    setLoading(false);
+    const fetchBlogPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/blog');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setBlogPosts(result.data);
+          } else {
+            // Fallback to default data if API fails
+            setBlogPosts(defaultBlogPosts);
+          }
+        } else {
+          setBlogPosts(defaultBlogPosts);
+        }
+      } catch (error) {
+        console.error('Failed to fetch blog posts:', error);
+        setBlogPosts(defaultBlogPosts);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlogPosts();
   }, []);
 
   const filteredPosts = selectedCategory === 'all' 
@@ -192,9 +213,9 @@ export default function BlogSection() {
                 </div>
                 <div className="lg:w-1/2 p-8 lg:p-12">
                   <div className="flex items-center mb-4">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${categories[featuredPost.category].color}`}>
-                      {React.createElement(categories[featuredPost.category].icon, { className: "h-4 w-4 mr-1" })}
-                      {categories[featuredPost.category].name}
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${categories[featuredPost.category]?.color || 'bg-gray-100 text-gray-600'}`}>
+                      {categories[featuredPost.category]?.icon && React.createElement(categories[featuredPost.category].icon, { className: "h-4 w-4 mr-1" })}
+                      {categories[featuredPost.category]?.name || featuredPost.category}
                     </span>
                     <span className="ml-3 text-sm text-red-600 font-medium">Öne Çıkan</span>
                   </div>
@@ -261,9 +282,9 @@ export default function BlogSection() {
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute top-4 left-4">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${categories[post.category].color}`}>
-                    {React.createElement(categories[post.category].icon, { className: "h-3 w-3 mr-1" })}
-                    {categories[post.category].name}
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${categories[post.category]?.color || 'bg-gray-100 text-gray-600'}`}>
+                    {categories[post.category]?.icon && React.createElement(categories[post.category].icon, { className: "h-3 w-3 mr-1" })}
+                    {categories[post.category]?.name || post.category}
                   </span>
                 </div>
                 <div className="absolute top-4 right-4 bg-white bg-opacity-90 rounded-full p-2">
@@ -379,9 +400,9 @@ export default function BlogSection() {
 
               <div className="p-8">
                 <div className="flex items-center mb-4">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${categories[selectedPost.category].color}`}>
-                    {React.createElement(categories[selectedPost.category].icon, { className: "h-4 w-4 mr-1" })}
-                    {categories[selectedPost.category].name}
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${categories[selectedPost.category]?.color || 'bg-gray-100 text-gray-600'}`}>
+                    {categories[selectedPost.category]?.icon && React.createElement(categories[selectedPost.category].icon, { className: "h-4 w-4 mr-1" })}
+                    {categories[selectedPost.category]?.name || selectedPost.category}
                   </span>
                 </div>
 

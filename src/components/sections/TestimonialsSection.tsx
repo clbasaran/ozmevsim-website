@@ -136,10 +136,40 @@ const projectTypeLabels = {
 export default function TestimonialsSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedType, setSelectedType] = useState<'all' | 'residential' | 'commercial' | 'industrial'>('all');
+  const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>(testimonials);
+  const [loading, setLoading] = useState(true);
+
+  // Initialize with default data and optionally fetch from API
+  React.useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        setLoading(true);
+        // Use default data immediately to prevent errors
+        setTestimonialsData(testimonials);
+        
+        // Optionally try to fetch from API
+        const response = await fetch('/api/testimonials');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data && Array.isArray(result.data)) {
+            setTestimonialsData(result.data);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch testimonials:', error);
+        // Keep default data on error
+        setTestimonialsData(testimonials);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
 
   const filteredTestimonials = selectedType === 'all' 
-    ? testimonials 
-    : testimonials.filter(t => t.projectType === selectedType);
+    ? testimonialsData 
+    : testimonialsData.filter(t => t.projectType === selectedType);
 
   const nextTestimonial = () => {
     setCurrentIndex((prev) => (prev + 1) % filteredTestimonials.length);
@@ -158,8 +188,23 @@ export default function TestimonialsSection() {
     ));
   };
 
-  const averageRating = testimonials.reduce((acc, t) => acc + t.rating, 0) / testimonials.length;
-  const totalProjects = testimonials.length;
+  const averageRating = testimonialsData.reduce((acc, t) => acc + t.rating, 0) / testimonialsData.length;
+  const totalProjects = testimonialsData.length;
+
+  if (loading) {
+    return (
+      <section className="pt-40 pb-20 bg-gradient-to-br from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Müşteri Deneyimleri</h2>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="pt-40 pb-20 bg-gradient-to-br from-gray-50 to-white">

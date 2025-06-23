@@ -2,7 +2,7 @@
 // In a real application, this would be connected to a database
 
 // Import static data for production
-import { getStaticData, STATIC_HERO_SLIDES, STATIC_SERVICES, STATIC_PRODUCTS, STATIC_REFERENCES } from '@/data/default-data';
+import { getStaticData, STATIC_HERO_SLIDES, STATIC_SERVICES } from '@/data/default-data';
 
 export interface HeroSlide {
   id: number;
@@ -33,6 +33,7 @@ export interface Product {
   category: string;
   brand: string;
   features: string[];
+  specifications?: Record<string, string>;
   isActive: boolean;
 }
 
@@ -163,91 +164,7 @@ const defaultServices: Service[] = [
   }
 ];
 
-const defaultProducts: Product[] = [
-  // Bosch Kombiler
-  {
-    id: 1,
-    name: 'Bosch Condens 1200W',
-    description: 'Bosch Condens 1200W yoğuşmalı kombi, kompakt tasarım ve yüksek verimlilik sunar.',
-    image: '/uploads/kombiler/bosch/codens 1200w.png',
-    category: 'kombi',
-    brand: 'Bosch',
-    features: ['Yoğuşmalı teknoloji', 'A+ enerji sınıfı', 'Kompakt tasarım', 'Sessiz çalışma'],
-    isActive: true
-  },
-  {
-    id: 2,
-    name: 'Bosch Condens 2200i',
-    description: 'Bosch Condens 2200i akıllı kombi sistemi, modern teknoloji ve üstün performans ile öne çıkar.',
-    image: '/uploads/kombiler/bosch/codens 2200i.png',
-    category: 'kombi',
-    brand: 'Bosch',
-    features: ['Akıllı kontrol sistemi', 'A++ enerji sınıfı', 'Modülasyonlu yanma', 'Uzaktan kontrol'],
-    isActive: true
-  },
-  
-  // DemirDöküm Kombiler
-  {
-    id: 3,
-    name: 'DemirDöküm AdemiX',
-    description: 'DemirDöküm AdemiX kombi, yerli üretim kalitesi ve güvenilir performans sunar.',
-    image: '/uploads/kombiler/demirdokum/ademiX.png',
-    category: 'kombi',
-    brand: 'DemirDöküm',
-    features: ['Yerli üretim', 'Güvenilir çalışma', 'Kolay bakım', 'Geniş servis ağı'],
-    isActive: true
-  },
-  {
-    id: 4,
-    name: 'DemirDöküm VintomiX',
-    description: 'DemirDöküm VintomiX kombi, modern tasarım ve güçlü performans ile evinizde konfor sağlar.',
-    image: '/uploads/kombiler/demirdokum/vintomiX.png',
-    category: 'kombi',
-    brand: 'DemirDöküm',
-    features: ['Modern tasarım', 'Güçlü performans', 'Dayanıklı yapı', 'Kolay kullanım'],
-    isActive: true
-  },
-  {
-    id: 5,
-    name: 'DemirDöküm Nitromix',
-    description: 'DemirDöküm Nitromix kombi, nitro teknolojisi ile yüksek verimlilik ve temiz yanma sağlar.',
-    image: '/uploads/kombiler/demirdokum/nitromix.png',
-    category: 'kombi',
-    brand: 'DemirDöküm',
-    features: ['Nitro teknolojisi', 'Temiz yanma', 'Verimli çalışma', 'Çevre dostu'],
-    isActive: true
-  },
-  {
-    id: 6,
-    name: 'DemirDöküm Nitromix Ioni',
-    description: 'DemirDöküm Nitromix Ioni kombi, iyonik alev teknolojisi ile üstün performans ve enerji tasarrufu sunar.',
-    image: '/uploads/kombiler/demirdokum/nitromix ioni.png',
-    category: 'kombi',
-    brand: 'DemirDöküm',
-    features: ['İyonik alev teknolojisi', 'Üstün performans', 'Enerji tasarrufu', 'Temiz emisyon'],
-    isActive: true
-  },
-  {
-    id: 7,
-    name: 'DemirDöküm Nitromix Ioni Hero',
-    description: 'DemirDöküm Nitromix Ioni Hero kombi, en gelişmiş teknoloji ile maksimum verimlilik ve konfor sağlar.',
-    image: '/uploads/kombiler/demirdokum/nitromix ioni hero.png',
-    category: 'kombi',
-    brand: 'DemirDöküm',
-    features: ['Hero teknolojisi', 'Maksimum verimlilik', 'Premium özellikler', 'Akıllı kontrol'],
-    isActive: true
-  },
-  {
-    id: 8,
-    name: 'DemirDöküm IsoMix',
-    description: 'DemirDöküm IsoMix kombi, izolasyon teknolojisi ile enerji kaybını minimize eder ve yüksek verimlilik sağlar.',
-    image: '/uploads/kombiler/demirdokum/isomix.png',
-    category: 'kombi',
-    brand: 'DemirDöküm',
-    features: ['İzolasyon teknolojisi', 'Enerji kaybı minimumu', 'Yüksek verimlilik', 'Çevre dostu'],
-    isActive: true
-  }
-];
+// No static products - all data comes from D1 database
 
 const defaultReferences: Reference[] = [
   {
@@ -342,7 +259,7 @@ const initializeData = () => {
     return {
       heroSlides: [...defaultHeroSlides],
       services: [...defaultServices],
-      products: [...defaultProducts],
+      products: [], // No static products
       references: [...defaultReferences]
     };
   }
@@ -357,7 +274,7 @@ const initializeData = () => {
     return {
       heroSlides: storedHeroSlides ? JSON.parse(storedHeroSlides) : [...defaultHeroSlides],
       services: storedServices ? JSON.parse(storedServices) : [...defaultServices],
-      products: storedProducts ? JSON.parse(storedProducts) : [...defaultProducts],
+      products: storedProducts ? JSON.parse(storedProducts) : [], // No static products
       references: storedReferences ? JSON.parse(storedReferences) : [...defaultReferences]
     };
   } catch (error) {
@@ -365,7 +282,7 @@ const initializeData = () => {
     return {
       heroSlides: [...defaultHeroSlides],
       services: [...defaultServices],
-      products: [...defaultProducts],
+      products: [], // No static products
       references: [...defaultReferences]
     };
   }
@@ -375,7 +292,7 @@ const initializeData = () => {
 const initialData = initializeData();
 let heroSlides: HeroSlide[] = initialData.heroSlides;
 let services: Service[] = initialData.services;
-let products: Product[] = initialData.products;
+let products: Product[] = initialData.products; // Will be empty array
 let references = [...initialData.references];
 
 // Storage management with KV sync
@@ -520,131 +437,89 @@ export const deleteService = (id: number): boolean => {
   return false;
 };
 
-// Products Management
-export const getProducts = async (): Promise<Product[]> => {
-  // Check if we're in production environment
-  const isProduction = typeof window !== 'undefined' && 
-    (window.location.hostname === 'ozmevsim.com' || 
-     window.location.hostname.includes('ozmevsim-website.pages.dev'));
-
-  // In production, try to fetch from admin localStorage (real-time sync)
-  if (isProduction && typeof window !== 'undefined') {
-    try {
-      // Try admin KV backup first (for real-time updates)
-      const kvBackup = localStorage.getItem('ozmevsim_kv_backup');
-      if (kvBackup) {
-        const kvData = JSON.parse(kvBackup);
-        const adminProducts = kvData.products || [];
-        const deletedIds = kvData.deletedProducts || [];
-        
-        console.log('✅ Using admin sync data:', adminProducts.length, 'products');
-        
-        // Filter out deleted products and convert format
-        const activeProducts = adminProducts
-          .filter((product: any) => !deletedIds.includes(product.id))
-          .map((product: any) => ({
-            id: parseInt(product.id) || product.id,
-            name: product.name || product.title,
-            description: product.description || product.shortDescription,
-            image: product.images?.[0] || product.image || '/images/placeholder.jpg',
-            category: product.category,
-            brand: product.brand || '',
-            features: product.specifications?.map((spec: any) => `${spec.key}: ${spec.value}`) || product.features || [],
-            isActive: product.status === 'active'
-          }));
-        
-        if (activeProducts.length > 0) {
-          return activeProducts;
-        }
-      }
-
-      // Fallback: Try localStorage admin products
-      const adminProducts = localStorage.getItem('ozmevsim_products');
-      const deletedProducts = localStorage.getItem('ozmevsim_deleted_products');
+// Helper function to get product by ID
+export const getProductById = async (id: string): Promise<Product | null> => {
+  try {
+    console.log('🔄 Fetching product by ID:', id);
+    
+    // Use absolute URL for client-side requests
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/products?id=${id}`);
+    
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Product API response:', result);
       
-      if (adminProducts) {
-        const products = JSON.parse(adminProducts);
-        const deletedIds = deletedProducts ? JSON.parse(deletedProducts) : [];
-        
-        console.log('✅ Using localStorage admin data:', products.length, 'products');
-        
-        const activeProducts = products
-          .filter((product: any) => !deletedIds.includes(product.id))
-          .map((product: any) => ({
-            id: parseInt(product.id) || product.id,
-            name: product.name || product.title,
-            description: product.description || product.shortDescription,
-            image: product.images?.[0] || product.image || '/images/placeholder.jpg',
-            category: product.category,
-            brand: product.brand || '',
-            features: product.specifications?.map((spec: any) => `${spec.key}: ${spec.value}`) || product.features || [],
-            isActive: product.status === 'active'
-          }));
-        
-        if (activeProducts.length > 0) {
-          return activeProducts;
-        }
-      }
-
-      // Last resort: Try D1 API
-      const response = await fetch('/api/products');
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Fetched products from D1:', data.length, 'products');
-        return data.map((product: any) => ({
+      const product = result.data || result;
+      
+      if (product) {
+        const processedProduct = {
           id: product.id,
           name: product.title || product.name,
           description: product.description,
           image: product.image_url || product.image,
           category: product.category,
           brand: product.brand,
-          features: product.features || [],
+          features: Array.isArray(product.features) ? product.features : [],
+          specifications: product.specifications || {},
           isActive: product.status === 'active'
-        }));
-      } else {
-        console.warn('⚠️ D1 API failed, using default products');
+        };
+        
+        console.log('✅ Processed product:', processedProduct);
+        return processedProduct;
       }
-    } catch (error) {
-      console.error('❌ Error fetching products, using default:', error);
+    } else {
+      console.error('❌ Product API failed with status:', response.status);
     }
+  } catch (error) {
+    console.error('❌ Error fetching product by ID:', error);
   }
   
-  // Fallback to default static products
-  console.log('📦 Using default static products');
-  return products.filter(product => product.isActive);
+  console.log('❌ Product not found for ID:', id);
+  return null;
 };
 
-export const getAllProducts = (): Product[] => {
-  return products;
-};
-
-export const updateProduct = (id: number, updatedProduct: Partial<Product>): boolean => {
-  const index = products.findIndex(product => product.id === id);
-  if (index !== -1) {
-    products[index] = { ...products[index], ...updatedProduct };
-    saveToStorage(STORAGE_KEYS.PRODUCTS, products);
-    return true;
+// Products Management
+export const getProducts = async (): Promise<Product[]> => {
+  // Always try to fetch from D1 database first
+  try {
+    console.log('🔄 Fetching products from D1 database...');
+    
+    const response = await fetch('/api/products');
+    if (response.ok) {
+      const result = await response.json();
+      const products = result.data || result;
+      
+      console.log('✅ Fetched products from D1:', products.length, 'products');
+      
+      return products.map((product: any) => ({
+        id: product.id,
+        name: product.title || product.name,
+        description: product.description,
+        image: product.image_url || product.image,
+        category: product.category,
+        brand: product.brand,
+        features: Array.isArray(product.features) ? product.features : [],
+        specifications: product.specifications || {},
+        isActive: product.status === 'active'
+      }));
+    } else {
+      console.error('❌ D1 API failed with status:', response.status);
+      throw new Error(`API failed with status ${response.status}`);
+    }
+  } catch (error) {
+    console.error('❌ Error fetching products from D1:', error);
+    
+    // Return empty array instead of fallback to static data
+    console.log('📦 No products available - returning empty array');
+    return [];
   }
-  return false;
 };
 
-export const addProduct = (product: Omit<Product, 'id'>): Product => {
-  const newId = Math.max(...products.map(p => p.id), 0) + 1;
-  const newProduct = { ...product, id: newId };
-  products.push(newProduct);
-  saveToStorage(STORAGE_KEYS.PRODUCTS, products);
-  return newProduct;
-};
-
-export const deleteProduct = (id: number): boolean => {
-  const index = products.findIndex(product => product.id === id);
-  if (index !== -1) {
-    products.splice(index, 1);
-    saveToStorage(STORAGE_KEYS.PRODUCTS, products);
-    return true;
-  }
-  return false;
-};
+// Product management functions removed - all product operations now use D1 database via API
 
 // References API functions
 export const getReferences = (): Reference[] => {

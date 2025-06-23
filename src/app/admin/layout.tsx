@@ -61,6 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { title: 'İletişim', href: '/admin/pages/contact' },
         { title: 'Blog', href: '/admin/pages/blog' },
         { title: 'SSS', href: '/admin/pages/faq' },
+        { title: 'Müşteri Yorumları', href: '/admin/pages/testimonials' },
       ],
     },
     {

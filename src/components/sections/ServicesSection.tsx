@@ -75,75 +75,26 @@ export default function ServicesSection() {
     }
   }, []);
 
-  // Load stats from localStorage
+  // Load default stats only
   useEffect(() => {
-    try {
-      const savedStats = localStorage.getItem('homeStats');
-      if (savedStats) {
-        const homeStats: HomeStat[] = JSON.parse(savedStats);
-        const activeStats = homeStats
-          .filter(stat => stat.isActive)
-          .sort((a, b) => a.order - b.order)
-          .map(stat => ({
-            number: stat.value,
-            label: stat.label
-          }));
-        
-        if (activeStats.length > 0) {
-          setStatsData(activeStats);
-          console.log('Loaded stats from localStorage:', activeStats);
-        } else {
-          setStatsData(defaultStatsData);
-        }
-      } else {
-        setStatsData(defaultStatsData);
-      }
-    } catch (error) {
-      console.error('Error loading stats from localStorage:', error);
-      setStatsData(defaultStatsData);
-    }
+    setStatsData(defaultStatsData);
   }, []);
 
-  // Listen for storage changes to update services when admin makes changes
+  // Listen for service changes only
   useEffect(() => {
     const handleStorageChange = () => {
       try {
         const activeServices = getServices();
         setServices(activeServices);
-        
-        // Also reload stats
-        const savedStats = localStorage.getItem('homeStats');
-        if (savedStats) {
-          const homeStats: HomeStat[] = JSON.parse(savedStats);
-          const activeStats = homeStats
-            .filter(stat => stat.isActive)
-            .sort((a, b) => a.order - b.order)
-            .map(stat => ({
-              number: stat.value,
-              label: stat.label
-            }));
-          
-          if (activeStats.length > 0) {
-            setStatsData(activeStats);
-          } else {
-            setStatsData(defaultStatsData);
-          }
-        }
       } catch (error) {
         console.error('Error reloading data:', error);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom events from same tab
     window.addEventListener('servicesUpdated', handleStorageChange);
-    window.addEventListener('statsUpdated', handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('servicesUpdated', handleStorageChange);
-      window.removeEventListener('statsUpdated', handleStorageChange);
     };
   }, []);
 

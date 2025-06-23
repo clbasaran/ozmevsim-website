@@ -18,7 +18,7 @@ export async function onRequest(context) {
 
   try {
     // Check if D1 database is available
-    if (!env.DB) {
+    if (!env.ozmevsim_d1) {
       throw new Error('Database not available');
     }
 
@@ -37,7 +37,7 @@ export async function onRequest(context) {
       query += ' ORDER BY created_at DESC';
       
       // Execute query
-      const stmt = env.DB.prepare(query);
+      const stmt = env.ozmevsim_d1.prepare(query);
       const result = await stmt.bind(...params).all();
 
       return new Response(JSON.stringify({
@@ -85,7 +85,7 @@ export async function onRequest(context) {
       }
 
       // Insert into D1 database
-      const stmt = env.DB.prepare(`
+      const stmt = env.ozmevsim_d1.prepare(`
         INSERT INTO contact_messages (name, email, phone, subject, message, status)
         VALUES (?, ?, ?, ?, ?, ?)
       `);
