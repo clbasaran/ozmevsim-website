@@ -6,35 +6,31 @@ export const metadata: Metadata = {
   description: 'Kaliteli kombi, klima ve ısıtma sistemleri. DemirDöküm, Bosch ve diğer markaların resmi bayii.',
 };
 
-// Server-side data fetching for SSR
+// Server-side data fetching for SSR with better error handling
 async function getProductsData() {
   try {
     console.log('🔧 Server-side: Fetching products data');
-    
-    // PRODUCTION: Always fetch from dynamic API - no more static fallback
-    console.log('🔧 Production: Fetching dynamic products data from API');
 
     // Runtime API call for dynamic updates
     const baseUrl = process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
-      : 'https://aab05017.ozmevsim-website.pages.dev';
+      : 'https://13edf8b0.ozmevsim-website.pages.dev';
     
-    const response = await fetch(`${baseUrl}/api/products`, {
+    const response = await fetch(`${baseUrl}/products`, {
       headers: {
         'User-Agent': 'ProductsPage/1.0'
       },
-      // Add cache settings for dynamic data
-      next: { revalidate: 60 } // Revalidate every 1 minute for fresh data
+      // Add cache settings but more conservative
+      next: { revalidate: 300 } // Revalidate every 5 minutes 
     });
 
     if (!response.ok) {
       console.log('⚠️ API request failed:', response.status);
-      // Return fallback data on API failure
       return [];
     }
 
     const result = await response.json();
-    if (result.success && result.data) {
+    if (result.success && result.data && Array.isArray(result.data)) {
       console.log('✅ Found real products data:', result.data.length, 'products');
       return result.data;
     } else {

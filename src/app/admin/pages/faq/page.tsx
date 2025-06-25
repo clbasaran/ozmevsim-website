@@ -96,7 +96,7 @@ export default function AdminFAQPage() {
   const filteredFaqs = faqs.filter(faq => {
     const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          faq.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         faq.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (faq.keywords && Array.isArray(faq.keywords) && faq.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm.toLowerCase())));
     const matchesCategory = !filterCategory || faq.category === filterCategory;
     const matchesStatus = !filterStatus || 
                          (filterStatus === 'active' && faq.isActive) ||
@@ -280,7 +280,7 @@ export default function AdminFAQPage() {
         f.question,
         f.answer,
         f.category,
-        f.keywords.join('; '),
+        (f.keywords && Array.isArray(f.keywords) ? f.keywords.join('; ') : ''),
         f.isActive ? 'Evet' : 'Hayır',
         f.isPopular ? 'Evet' : 'Hayır',
         f.viewCount
@@ -448,7 +448,7 @@ export default function AdminFAQPage() {
                         <span>Güncelleme: {new Date(faq.updatedAt).toLocaleDateString('tr-TR')}</span>
                       </div>
 
-                      {faq.keywords.length > 0 && (
+                      {faq.keywords && Array.isArray(faq.keywords) && faq.keywords.length > 0 && (
                         <div className="flex items-center gap-2 mt-2">
                           <TagIcon className="w-4 h-4 text-gray-400" />
                           <div className="flex flex-wrap gap-1">

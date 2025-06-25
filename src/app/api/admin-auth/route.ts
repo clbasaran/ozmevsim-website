@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to Cloudflare Function
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://2c88a784.ozmevsim-website.pages.dev';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://35552196.ozmevsim-website.pages.dev';
     const response = await fetch(`${baseUrl}/api/admin-auth`, {
       method: 'POST',
       headers: {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Forward to Cloudflare Function
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://2c88a784.ozmevsim-website.pages.dev';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://35552196.ozmevsim-website.pages.dev';
     const response = await fetch(`${baseUrl}/api/admin-auth`, {
       method: 'GET',
       headers: {

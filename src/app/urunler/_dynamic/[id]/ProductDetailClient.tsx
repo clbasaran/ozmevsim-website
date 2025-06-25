@@ -41,6 +41,90 @@ interface Product {
   price?: number;
 }
 
+// Transform API product data to internal format
+const transformProductData = (apiProduct: any): Product => {
+  return {
+    id: apiProduct.id,
+    name: apiProduct.title || apiProduct.name || 'Ürün Adı',
+    title: apiProduct.title,
+    description: apiProduct.description || 'Açıklama bulunmuyor.',
+    image: (() => {
+      try {
+        if (apiProduct.all_images) {
+          const allImages = typeof apiProduct.all_images === 'string' 
+            ? JSON.parse(apiProduct.all_images)
+            : apiProduct.all_images;
+          if (Array.isArray(allImages) && allImages.length > 0) {
+            return allImages[0];
+          }
+        }
+      } catch (error) {
+        console.warn('Error parsing all_images:', error);
+      }
+      return apiProduct.image_url || apiProduct.image || '/images/products/placeholder.jpg';
+    })(),
+    image_url: apiProduct.image_url,
+    category: apiProduct.category || 'Genel',
+    brand: apiProduct.brand || 'Marka',
+    features: (() => {
+      try {
+        if (!apiProduct.features) return ['Yüksek kalite', 'Güvenilir', 'Uzun ömürlü'];
+        if (typeof apiProduct.features === 'string') {
+          if (apiProduct.features === '[]' || apiProduct.features === '') {
+            return ['Yüksek kalite', 'Güvenilir', 'Uzun ömürlü'];
+          }
+          try {
+            const parsed = JSON.parse(apiProduct.features);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return parsed;
+            }
+          } catch (parseError) {
+            console.warn('Features JSON parse error:', parseError);
+          }
+          return ['Yüksek kalite', 'Güvenilir', 'Uzun ömürlü'];
+        }
+        if (Array.isArray(apiProduct.features)) {
+          return apiProduct.features.length > 0 ? apiProduct.features : ['Yüksek kalite', 'Güvenilir', 'Uzun ömürlü'];
+        }
+        return ['Yüksek kalite', 'Güvenilir', 'Uzun ömürlü'];
+      } catch (error) {
+        console.warn('Error processing features:', error);
+        return ['Yüksek kalite', 'Güvenilir', 'Uzun ömürlü'];
+      }
+    })(),
+    specifications: (() => {
+      try {
+        if (!apiProduct.specifications) return { 'Garanti': '2 yıl', 'Kurulum': 'Ücretsiz' };
+        if (typeof apiProduct.specifications === 'string') {
+          if (apiProduct.specifications === '{}' || apiProduct.specifications === '') return { 'Garanti': '2 yıl', 'Kurulum': 'Ücretsiz' };
+          const parsed = JSON.parse(apiProduct.specifications);
+          if (Array.isArray(parsed)) {
+            const converted: Record<string, string> = {};
+            parsed.forEach((item: any) => {
+              if (item && typeof item === 'object' && item.key && item.value) {
+                converted[item.key] = item.value;
+              }
+            });
+            return Object.keys(converted).length > 0 ? converted : { 'Garanti': '2 yıl', 'Kurulum': 'Ücretsiz' };
+          }
+          return typeof parsed === 'object' && parsed !== null ? parsed : { 'Garanti': '2 yıl', 'Kurulum': 'Ücretsiz' };
+        }
+        if (typeof apiProduct.specifications === 'object' && apiProduct.specifications !== null) {
+          return apiProduct.specifications;
+        }
+        return { 'Garanti': '2 yıl', 'Kurulum': 'Ücretsiz' };
+      } catch (error) {
+        console.warn('Error parsing specifications:', error);
+        return { 'Garanti': '2 yıl', 'Kurulum': 'Ücretsiz' };
+      }
+    })(),
+    isActive: apiProduct.status === 'active',
+    status: apiProduct.status,
+    featured: apiProduct.featured || false,
+    price: apiProduct.price || 0
+  };
+};
+
 export default function ProductDetailClient({ productId, initialProduct, product: externalProduct }: ProductDetailClientProps) {
   // Get productId with fallback
   const id = productId || (externalProduct?.id?.toString()) || '1';
@@ -174,28 +258,53 @@ export default function ProductDetailClient({ productId, initialProduct, product
   }, [initialProduct, product]);
 
   useEffect(() => {
-    // Only fetch from API if we don't have initial product data
-    if (initialProduct) return;
+    // Always try to fetch fresh data for dynamic products
     const loadProductData = async () => {
       try {
         setIsLoading(true);
-        console.log('🔍 ProductDetailClient - Loading product ID:', productId);
+        console.log('🔍 ProductDetailClient - Loading product ID:', productId || id);
         console.log('🔍 ProductDetailClient - Current URL:', window.location.href);
-        console.log('🔍 ProductDetailClient - API URL will be:', '/api/products');
         
-        // Get all products from API endpoint
+        // First try to get specific product by ID
+        const specificApiUrl = `/api/products?id=${productId || id}`;
+        console.log('🔍 Trying specific product API:', specificApiUrl);
+        
+        try {
+          const specificResponse = await fetch(specificApiUrl);
+          if (specificResponse.ok) {
+            const specificResult = await specificResponse.json();
+            console.log('🔍 Specific product API response:', specificResult);
+            
+            if (specificResult.success && specificResult.data) {
+              const productData = Array.isArray(specificResult.data) 
+                ? specificResult.data[0] 
+                : specificResult.data;
+              
+              if (productData) {
+                console.log('✅ Found specific product via API:', productData.title);
+                setProduct(transformProductData(productData));
+                setIsLoading(false);
+                return; // Exit early if found
+              }
+            }
+          }
+        } catch (specificError) {
+          console.log('⚠️ Specific product API failed, trying all products API:', specificError);
+        }
+        
+        // Fallback to all products API
         const apiUrl = '/api/products';
-        console.log('🔍 Making API request to:', apiUrl);
+        console.log('🔍 Making fallback API request to:', apiUrl);
         const response = await fetch(apiUrl);
         console.log('🔍 API response status:', response.status);
-        console.log('🔍 API response URL:', response.url);
+        
         if (!response.ok) {
           console.error('❌ API request failed with status:', response.status);
           throw new Error(`API request failed: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('🔍 ProductDetailClient - API response:', result);
+        console.log('🔍 ProductDetailClient - All products API response:', result);
         
         if (result.success && result.data) {
           const allProducts = result.data;

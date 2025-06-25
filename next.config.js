@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Static export for Pages + Functions for APIs
+  // HYBRID MODE: Cloudflare Pages + Edge Functions for APIs + Dynamic routing
   output: 'export',
   trailingSlash: true,
   images: {
@@ -12,7 +12,7 @@ const nextConfig = {
     SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://ozmevsim.com'
   },
   poweredByHeader: false,
-  reactStrictMode: true,
+  reactStrictMode: false,
   swcMinify: true
 };
 

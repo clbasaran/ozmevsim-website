@@ -17,31 +17,64 @@ export async function onRequest(context) {
 
       if (method === 'GET') {
         // Get query parameters
+        const id = url.searchParams.get('id');
         const status = url.searchParams.get('status') || 'active';
 
-        // Fetch products from D1
-        const stmt = env.ozmevsim_d1.prepare(
-          'SELECT * FROM products WHERE status = ? ORDER BY created_at DESC'
-        );
-        const { results } = await stmt.bind(status).all();
+        if (id) {
+          // Fetch specific product by ID
+          const stmt = env.ozmevsim_d1.prepare(
+            'SELECT * FROM products WHERE id = ? AND status = ?'
+          );
+          const result = await stmt.bind(id, status).first();
 
-        // Parse JSON fields
-        const processedProducts = results.map(product => ({
-          ...product,
-          features: typeof product.features === 'string' ? JSON.parse(product.features) : product.features,
-          specifications: typeof product.specifications === 'string' ? JSON.parse(product.specifications) : product.specifications,
-        }));
+          if (!result) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: 'Product not found'
+            }), {
+              status: 404,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+          }
 
-        return new Response(JSON.stringify({
-          success: true,
-          data: processedProducts
-        }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
+          // Parse JSON fields
+          const processedProduct = {
+            ...result,
+            features: typeof result.features === 'string' ? JSON.parse(result.features) : result.features,
+            specifications: typeof result.specifications === 'string' ? JSON.parse(result.specifications) : result.specifications,
+          };
+
+          return new Response(JSON.stringify({
+            success: true,
+            data: processedProduct
+          }), {
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        } else {
+          // Fetch all products
+          const stmt = env.ozmevsim_d1.prepare(
+            'SELECT * FROM products WHERE status = ? ORDER BY created_at DESC'
+          );
+          const { results } = await stmt.bind(status).all();
+
+          // Parse JSON fields
+          const processedProducts = results.map(product => ({
+            ...product,
+            features: typeof product.features === 'string' ? JSON.parse(product.features) : product.features,
+            specifications: typeof product.specifications === 'string' ? JSON.parse(product.specifications) : product.specifications,
+          }));
+
+          return new Response(JSON.stringify({
+            success: true,
+            data: processedProducts
+          }), {
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
 
       } else if (method === 'POST') {
         const body = await request.json();
-        const { title, description, price, image_url, category, brand, model, features, specifications, status } = body;
+        const { title, description, price, image_url, all_images, category, brand, model, features, specifications, status } = body;
 
         // Validation
         if (!title || !description) {
@@ -55,8 +88,8 @@ export async function onRequest(context) {
 
         // Create product in D1
         const stmt = env.ozmevsim_d1.prepare(`
-          INSERT INTO products (title, description, price, image_url, category, brand, model, features, specifications, status, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+          INSERT INTO products (title, description, price, image_url, all_images, category, brand, model, features, specifications, status, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
         `);
 
         const result = await stmt.bind(
@@ -64,6 +97,7 @@ export async function onRequest(context) {
           description,
           price || 0,
           image_url || '',
+          all_images || '[]',
           category || 'general',
           brand || '',
           model || '',
@@ -86,7 +120,7 @@ export async function onRequest(context) {
 
       } else if (method === 'PUT') {
         const body = await request.json();
-        const { id, title, description, price, image_url, category, brand, model, features, specifications, status } = body;
+        const { id, title, description, price, image_url, all_images, category, brand, model, features, specifications, status } = body;
 
         if (!id) {
           return new Response(JSON.stringify({
@@ -100,7 +134,7 @@ export async function onRequest(context) {
         // Update product in D1
         const stmt = env.ozmevsim_d1.prepare(`
           UPDATE products 
-          SET title = ?, description = ?, price = ?, image_url = ?, category = ?, brand = ?, model = ?, features = ?, specifications = ?, status = ?, updated_at = datetime('now')
+          SET title = ?, description = ?, price = ?, image_url = ?, all_images = ?, category = ?, brand = ?, model = ?, features = ?, specifications = ?, status = ?, updated_at = datetime('now')
           WHERE id = ?
         `);
 
@@ -109,6 +143,7 @@ export async function onRequest(context) {
           description,
           price || 0,
           image_url || '',
+          all_images || '[]',
           category || 'general',
           brand || '',
           model || '',

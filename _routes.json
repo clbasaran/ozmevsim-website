@@ -4,6 +4,16 @@
     "/*"
   ],
   "exclude": [
-    "/api/*"
+    "/_next/*",
+    "/static/*",
+    "/*.ico",
+    "/*.png",
+    "/*.jpg",
+    "/*.jpeg",
+    "/*.gif",
+    "/*.svg",
+    "/*.css",
+    "/*.js",
+    "/*.map"
   ]
 } 

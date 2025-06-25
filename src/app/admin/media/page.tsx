@@ -131,50 +131,71 @@ export default function AdminMediaPage() {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFiles = Array.from(event.target.files || []);
-    handleFiles(uploadedFiles);
+  const handleFileUpload = async (files: File[]) => {
+    setIsUploading(true);
+    console.log('📤 Starting R2 upload for files:', files.map(f => f.name));
+    
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'products'); // Default folder
+        
+        console.log(`📤 Uploading ${file.name} to R2...`);
+        
+        const response = await fetch('/api/upload-r2', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        console.log(`📤 R2 Upload result for ${file.name}:`, result);
+        
+        if (result.success) {
+          console.log(`✅ Successfully uploaded ${file.name} to R2:`, result.url);
+          
+          // Determine file type based on MIME type
+          let fileType: 'image' | 'video' | 'document' = 'document';
+          if (file.type.startsWith('image/')) fileType = 'image';
+          else if (file.type.startsWith('video/')) fileType = 'video';
+          
+          return {
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // String ID
+            name: file.name,
+            originalName: file.name,
+            url: result.url,
+            size: file.size,
+            mimeType: file.type,
+            type: fileType,
+            folder: 'products',
+            uploadedAt: new Date().toISOString()
+          } as MediaFile;
+        } else {
+          throw new Error(result.error || 'R2 upload failed');
+        }
+      });
+      
+      const uploadedFiles = await Promise.all(uploadPromises);
+      console.log('✅ All files uploaded to R2:', uploadedFiles);
+      
+      // Add to media list
+      setFiles(prev => [...prev, ...uploadedFiles]);
+      
+      // Show success message with R2 URLs
+      const urlList = uploadedFiles.map(f => f.url).join('\n');
+      alert(`✅ ${uploadedFiles.length} dosya başarıyla R2'ye yüklendi!\n\nR2 URL'leri:\n${urlList}`);
+      
+    } catch (error) {
+      console.error('❌ R2 upload error:', error);
+      alert(`❌ Upload hatası: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFiles = async (uploadedFiles: File[]) => {
     if (uploadedFiles.length === 0) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      const formData = new FormData();
-      uploadedFiles.forEach(file => {
-        formData.append('files', file);
-      });
-      formData.append('folder', currentFolder);
-
-      // Check if we're in development or production
-      const isDev = process.env.NODE_ENV === 'development';
-      const apiUrl = isDev ? '/api/upload-r2' : '/api/upload-r2';
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Refresh the file list
-        await loadFilesFromR2();
-        setShowUpload(false);
-        alert(`${data.data.length} dosya başarıyla yüklendi!`);
-      } else {
-        alert('Dosya yükleme hatası: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Dosya yükleme sırasında bir hata oluştu.');
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-    }
+    await handleFileUpload(uploadedFiles);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -666,7 +687,11 @@ export default function AdminMediaPage() {
                     type="file"
                     multiple
                     accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-                    onChange={handleFileUpload}
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        handleFiles(Array.from(e.target.files));
+                      }
+                    }}
                     className="hidden"
                     id="file-upload"
                   />

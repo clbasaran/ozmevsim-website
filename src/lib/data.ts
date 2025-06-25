@@ -447,7 +447,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
       ? window.location.origin 
       : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     
-    const response = await fetch(`${baseUrl}/api/products?id=${id}`);
+    const response = await fetch(`${baseUrl}/products?id=${id}`);
     
     if (response.ok) {
       const result = await response.json();
@@ -488,7 +488,7 @@ export const getProducts = async (): Promise<Product[]> => {
   try {
     console.log('🔄 Fetching products from D1 database...');
     
-    const response = await fetch('/api/products');
+    const response = await fetch('/products');
     if (response.ok) {
       const result = await response.json();
       const products = result.data || result;

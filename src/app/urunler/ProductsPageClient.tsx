@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 
 interface Product {
   id: number;
@@ -65,38 +66,49 @@ export default function ProductsPageClient({ initialProducts }: ProductsPageClie
   const [selectedBrand, setSelectedBrand] = useState('Tümü');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [dynamicProducts, setDynamicProducts] = useState<Product[]>(initialProducts);
+  const [dynamicProducts, setDynamicProducts] = useState<Product[]>(initialProducts || []);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Fetch fresh data from API on component mount
+  // Fetch fresh data from API on component mount - with safeguards
   useEffect(() => {
+    // Prevent multiple API calls
+    if (hasLoaded) return;
+    
     const loadFreshProducts = async () => {
       setIsLoading(true);
       try {
         console.log('🔄 ProductsPageClient: Fetching fresh products from API...');
-        const response = await fetch('/api/products');
+        const response = await fetch('/products');
         if (!response.ok) {
           throw new Error(`API request failed: ${response.status}`);
         }
         
         const result = await response.json();
-        if (result.success && result.data) {
+        if (result.success && result.data && Array.isArray(result.data)) {
           console.log('✅ ProductsPageClient: Loaded fresh products:', result.data.length);
           setDynamicProducts(result.data);
         } else {
           console.error('❌ ProductsPageClient: API response indicates failure:', result);
-          // Keep initial products if API fails
+          // Use fallback data if no initial products
+          if (!initialProducts || initialProducts.length === 0) {
+            setDynamicProducts([]);
+          }
         }
       } catch (error) {
         console.error('❌ ProductsPageClient: Error loading fresh products:', error);
-        // Keep initial products if API fails
+        // Use fallback data if API fails and no initial products
+        if (!initialProducts || initialProducts.length === 0) {
+          setDynamicProducts([]);
+        }
       } finally {
         setIsLoading(false);
+        setHasLoaded(true);
       }
     };
 
     loadFreshProducts();
-  }, []);
+  }, [hasLoaded]);
 
   // Transform products to match expected format
   const products = useMemo(() => {
@@ -129,9 +141,26 @@ export default function ProductsPageClient({ initialProducts }: ProductsPageClie
         features: (() => {
           try {
             if (!product.features || product.features === '' || product.features === '[]') return [];
-            return JSON.parse(product.features);
+            
+            // If it's already an array, return it
+            if (Array.isArray(product.features)) {
+              return product.features;
+            }
+            
+            // If it's a string, try to parse it
+            if (typeof product.features === 'string') {
+              const parsed = JSON.parse(product.features);
+              if (Array.isArray(parsed)) {
+                return parsed;
+              }
+            }
+            
+            return [];
           } catch (e) {
-            console.warn('Invalid features JSON for product:', product.id, product.features);
+            // Only warn if it's not an empty array string
+            if (product.features !== '[]' && product.features !== '') {
+              console.warn('Invalid features JSON for product:', product.id, product.features);
+            }
             return [];
           }
         })(),
@@ -316,7 +345,6 @@ export default function ProductsPageClient({ initialProducts }: ProductsPageClie
                       className="object-contain p-4 w-full h-full"
                       loading="lazy"
                       onError={(e) => {
-                        console.log('🖼️ Image load error for:', product.image);
                         // Fallback to placeholder if image fails to load
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
                       }}
@@ -351,20 +379,13 @@ export default function ProductsPageClient({ initialProducts }: ProductsPageClie
 
                     {/* Features */}
                     <div className="mb-4">
-                      <div className="flex flex-wrap gap-1">
-                        {product.features.slice(0, 2).map((feature: string, index: number) => (
-                          <span
-                            key={index}
-                            className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
-                          >
-                            {feature}
-                          </span>
+                      <div className="text-gray-600 text-sm space-y-1">
+                        {(product.features || []).slice(0, 2).map((feature: string, index: number) => (
+                          <div key={index} className="flex items-center gap-1">
+                            <CheckCircleIcon className="h-3 w-3 text-green-500" />
+                            <span>{feature}</span>
+                          </div>
                         ))}
-                        {product.features.length > 2 && (
-                          <span className="text-xs text-gray-500">
-                            +{product.features.length - 2} özellik
-                          </span>
-                        )}
                       </div>
                     </div>
 

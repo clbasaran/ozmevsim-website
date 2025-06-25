@@ -73,7 +73,7 @@ const ProductsSection = () => {
       setIsLoading(true);
       try {
         console.log('🔄 ProductsSection: Fetching products from API...');
-        const response = await fetch('/api/products');
+        const response = await fetch('/products');
         if (!response.ok) {
           throw new Error(`API request failed: ${response.status}`);
         }
@@ -111,9 +111,26 @@ const ProductsSection = () => {
               features: (() => {
                 try {
                   if (!p.features || p.features === '' || p.features === '[]') return [];
-                  return JSON.parse(p.features);
+                  
+                  // If it's already an array, return it
+                  if (Array.isArray(p.features)) {
+                    return p.features;
+                  }
+                  
+                  // If it's a string, try to parse it
+                  if (typeof p.features === 'string') {
+                    const parsed = JSON.parse(p.features);
+                    if (Array.isArray(parsed)) {
+                      return parsed;
+                    }
+                  }
+                  
+                  return [];
                 } catch (e) {
-                  console.warn('Invalid features JSON for product:', p.id, p.features);
+                  // Only warn if it's not an empty array string
+                  if (p.features !== '[]' && p.features !== '') {
+                    console.warn('Invalid features JSON for product:', p.id, p.features);
+                  }
                   return [];
                 }
               })(),
@@ -250,7 +267,6 @@ const ProductsSection = () => {
                     className="object-contain p-6 group-hover:scale-105 transition-transform duration-300 w-full h-full"
                     loading="lazy"
                     onError={(e) => {
-                      console.log('🖼️ Image load error for:', product.image);
                       // Fallback to placeholder if image fails to load
                       (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
                     }}

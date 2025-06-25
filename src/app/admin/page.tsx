@@ -173,7 +173,7 @@ const AdminDashboard = () => {
       // Get products data from API
       let productsData = [];
       try {
-        const productsResponse = await fetch('/api/products');
+        const productsResponse = await fetch('/products');
         if (productsResponse.ok) {
           const productsResult = await productsResponse.json();
           productsData = productsResult.success ? productsResult.data : [];

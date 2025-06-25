@@ -58,18 +58,18 @@ async function getProductData(id: string) {
     // Try API call first for both development and production
     console.log('🔧 Attempting API call for product data');
     
-    // Runtime API call
+    // Runtime API call - updated base URL
     const baseUrl = process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
-      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://aab05017.ozmevsim-website.pages.dev');
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://35552196.ozmevsim-website.pages.dev');
     
     try {
       const response = await fetch(`${baseUrl}/api/products?id=${id}`, {
         headers: {
           'User-Agent': 'ProductDetailPage/1.0'
         },
-        // Add cache settings
-        next: { revalidate: 300 } // Revalidate every 5 minutes
+        // Reduced cache time for faster updates
+        next: { revalidate: 30 } // Revalidate every 30 seconds
       });
 
       if (response.ok) {
@@ -223,34 +223,39 @@ async function getProductData(id: string) {
   }
 }
 
-// Generate static params for build - DYNAMIC MODE ENABLED
+// HYBRID STATIC + DYNAMIC: Generate static pages for existing products, handle new ones dynamically
 export async function generateStaticParams() {
-  console.log('🔧 Generating static params for product pages...');
+  console.log('🎯 HYBRID MODE: Static generation for existing products + dynamic for new ones');
   
   try {
-    // Fetch real products from API for production builds  
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://def0346d.ozmevsim-website.pages.dev';
+    // Fetch all existing products from API for static generation
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://35552196.ozmevsim-website.pages.dev';
     const response = await fetch(`${baseUrl}/api/products`);
     
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success && Array.isArray(result.data)) {
-        console.log('✅ Found real products data:', result.data.length, 'products');
-        return result.data.map((product: any) => ({
-          id: String(product.id),
-        }));
-      }
+    if (!response.ok) {
+      console.warn('⚠️ Failed to fetch products for static generation, using fallback IDs');
+      // Fallback to known product IDs
+      return ['5', '6', '8', '3', '4', '121', '122', '123'].map(id => ({ id: [id] }));
+    }
+    
+    const result = await response.json();
+    
+    if (result.success && result.data && Array.isArray(result.data)) {
+      const productIds = result.data.map((product: any) => product.id.toString());
+      console.log('✅ Static generation for product IDs:', productIds.join(', '));
+      
+      return productIds.map((id: string) => ({
+        id: [id], // Catch-all route expects array
+      }));
+    } else {
+      console.warn('⚠️ Invalid API response for static generation');
+      return ['5', '6', '8', '3', '4'].map(id => ({ id: [id] }));
     }
   } catch (error) {
-    console.log('⚠️ Failed to fetch products for static generation:', error);
+    console.error('❌ Error fetching products for static generation:', error);
+    // Fallback to essential product IDs
+    return ['5', '6', '8', '3', '4'].map(id => ({ id: [id] }));
   }
-  
-  // Fallback to known product IDs for static generation (including new ones)
-  const productIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '107', '108', '109', '111', '112', '113'];
-  
-  return productIds.map((id) => ({
-    id: id,
-  }));
 }
 
 // Generate metadata
@@ -275,18 +280,16 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-// Enable dynamic params (fixes 404 for new products)
+// Enable dynamic params (fixes 404 for new products)  
 export const dynamicParams = true;
 
-// Enable ISR - regenerate page when new products are added
-export const revalidate = 60; // Revalidate every 60 seconds
-
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = await getProductData(params.id);
+export default async function ProductDetailPage({ params }: { params: { id: string[] } }) {
+  // Extract actual ID from catch-all params
+  const productId = Array.isArray(params.id) ? params.id[0] : params.id;
   
-  if (!product) {
-    notFound();
-  }
-
-  return <ProductDetailClient productId={params.id} initialProduct={product} />;
+  // Try to get product data, but don't fail if not found
+  const product = await getProductData(productId);
+  
+  // Always render the client component - it will handle loading and 404 states
+  return <ProductDetailClient productId={productId} initialProduct={product} />;
 } 

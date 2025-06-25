@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createDatabaseService } from '@/lib/database';
+import { revalidatePath } from 'next/cache';
 
 // Edge runtime for Cloudflare Pages
 export const runtime = 'edge';
@@ -125,6 +126,15 @@ export async function POST(request: NextRequest) {
       throw new Error(result.error || 'Failed to create product');
     }
 
+    // Revalidate product pages to enable immediate access
+    try {
+      revalidatePath('/urunler');
+      revalidatePath(`/urunler/${result.id}`);
+      console.log(`✅ Revalidated paths for new product ID: ${result.id}`);
+    } catch (revalidateError) {
+      console.warn('⚠️ Failed to revalidate paths:', revalidateError);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Product created successfully',
@@ -193,6 +203,15 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log('✅ PUT Request - Product updated successfully:', id);
+
+    // Revalidate product pages after update
+    try {
+      revalidatePath('/urunler');
+      revalidatePath(`/urunler/${id}`);
+      console.log(`✅ Revalidated paths for updated product ID: ${id}`);
+    } catch (revalidateError) {
+      console.warn('⚠️ Failed to revalidate paths:', revalidateError);
+    }
 
     return NextResponse.json({
       success: true,

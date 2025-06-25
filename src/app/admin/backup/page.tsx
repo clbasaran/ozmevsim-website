@@ -36,7 +36,7 @@ export default function BackupPage() {
         fetch('/api/faq').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] })),
         fetch('/api/testimonials').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] })),
         fetch('/api/contact').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] })),
-        fetch('/api/products').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] }))
+        fetch('/products').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] }))
       ]);
 
       const exportData = {

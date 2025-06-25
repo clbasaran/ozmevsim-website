@@ -25,6 +25,8 @@ export function middleware(request: NextRequest) {
     }
   }
   
+  // Product routes are handled by [...id] catch-all route automatically
+  
   return NextResponse.next();
 }
 

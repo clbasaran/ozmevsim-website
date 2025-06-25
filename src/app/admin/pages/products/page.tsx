@@ -76,6 +76,11 @@ export default function AdminProductsPage() {
       id: '4',
       name: 'Fan Coil Üniteler',
       subcategories: ['Duvar Tipi', 'Tavan Tipi', 'Kaset Tipi']
+    },
+    {
+      id: '5',
+      name: 'Test',
+      subcategories: ['Test Markası', 'Demo', 'Örnek']
     }
   ]);
 
@@ -91,6 +96,7 @@ export default function AdminProductsPage() {
   const [sortBy, setSortBy] = useState('sortOrder');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -105,7 +111,7 @@ export default function AdminProductsPage() {
   const loadProductsFromAPI = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/products');
+      const response = await fetch('/products');
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
@@ -244,82 +250,81 @@ export default function AdminProductsPage() {
   };
 
   const handleSaveProduct = async () => {
-    if (!selectedProduct) return;
-
-    // Validation - check required fields
-    if (!selectedProduct.name || !selectedProduct.description) {
-      alert('❌ Ürün adı ve açıklama zorunludur!');
+    console.log('🚀 SAVE BUTTON CLICKED - Starting save process...');
+    
+    if (!selectedProduct || !selectedProduct.name.trim()) {
+      alert('Ürün adı gereklidir!');
       return;
     }
 
-    if (!selectedProduct.category) {
-      alert('❌ Kategori seçimi zorunludur!');
-      return;
-    }
-
-    const updatedProduct = {
-      ...selectedProduct,
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
+    setSaving(true);
+    console.log('💾 Saving product:', selectedProduct);
 
     try {
-      // Save directly to D1 database via API
-      const apiData = {
-        title: updatedProduct.name,
-        description: updatedProduct.description,
-        price: updatedProduct.price,
-        image_url: updatedProduct.images[0] || '',
-        // Store all images in a custom field for future use
-        all_images: JSON.stringify(updatedProduct.images),
-        category: updatedProduct.category,
-        brand: updatedProduct.subcategory || '',
-        model: '',
-        features: [],
-        specifications: updatedProduct.specifications.reduce((acc, spec) => {
+      const method = isCreating ? 'POST' : 'PUT';
+      // ALWAYS use main endpoint to avoid 405 error
+      const endpoint = '/products';
+      
+      console.log(`📡 API Request: ${method} ${endpoint}`);
+      
+      const requestData = {
+        title: selectedProduct.name,
+        description: selectedProduct.shortDescription || selectedProduct.description || selectedProduct.name,
+        code: selectedProduct.code,
+        category: selectedProduct.category,
+        subcategory: selectedProduct.subcategory,
+        price: selectedProduct.price,
+        image_url: selectedProduct.images[0] || '',
+        all_images: JSON.stringify(selectedProduct.images),
+        brand: selectedProduct.subcategory || '',
+        model: selectedProduct.code || '',
+        features: selectedProduct.specifications.map(spec => `${spec.key}: ${spec.value}`),
+        specifications: selectedProduct.specifications.reduce((acc, spec) => {
           acc[spec.key] = spec.value;
           return acc;
         }, {} as Record<string, string>),
-        status: updatedProduct.status,
-        created_at: updatedProduct.createdAt,
-        updated_at: updatedProduct.updatedAt
+        status: selectedProduct.status,
       };
 
-      const response = await fetch('/api/products', {
-        method: isCreating ? 'POST' : 'PUT',
+      // Add ID for PUT requests
+      if (!isCreating) {
+        (requestData as any).id = parseInt(selectedProduct.id);
+      }
+
+      console.log('📦 Request payload:', requestData);
+      
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(isCreating ? apiData : { ...apiData, id: updatedProduct.id })
+        body: JSON.stringify(requestData),
       });
 
+      console.log(`📡 API Response Status: ${response.status}`);
+      
       if (!response.ok) {
-        throw new Error('Failed to save product');
+        const errorText = await response.text();
+        console.error('❌ API Error:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      if (result.success) {
-        // Update local state
-        if (isCreating) {
-          // API returns id directly for POST requests
-          const newId = result.id ? result.id.toString() : Date.now().toString();
-          setProducts([...products, { ...updatedProduct, id: newId }]);
-        } else {
-          setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-        }
-        
-        setIsEditing(false);
-        setSelectedProduct(null);
-        setIsCreating(false);
-        alert('✅ Ürün başarıyla kaydedildi!');
-        
-        // Reload products to get fresh data from database
-        await loadProductsFromAPI();
-      } else {
-        throw new Error(result.error || 'Save failed');
-      }
+      console.log('✅ API Success:', result);
+
+      alert(isCreating ? '✅ Ürün başarıyla eklendi!' : '✅ Ürün başarıyla güncellendi!');
+      
+      setIsEditing(false);
+      await loadProductsFromAPI(); // Reload products
+      
+      console.log('🔄 Products reloaded after save');
+      
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert('❌ Ürün kaydedilirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
+      console.error('❌ Save error:', error);
+      alert(`❌ Hata: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+    } finally {
+      setSaving(false);
+      console.log('🏁 Save process completed');
     }
   };
 
@@ -329,7 +334,7 @@ export default function AdminProductsPage() {
     }
 
     try {
-      const response = await fetch('/api/products', {
+      const response = await fetch('/products', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -437,7 +442,7 @@ export default function AdminProductsPage() {
     try {
       // Delete selected products one by one
       for (const productId of selectedProducts) {
-        const response = await fetch('/api/products', {
+        const response = await fetch('/products', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -526,9 +531,25 @@ export default function AdminProductsPage() {
         } else {
           throw new Error(uploadResult.error || 'Upload failed');
         }
+        
       } catch (error) {
-        console.error('❌ Image upload error:', error);
-        alert('❌ Resim yüklenirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
+        console.error('❌ R2 upload error:', error);
+        
+        // Fallback to placeholder if R2 upload fails
+        const imageKeywords = ['product', 'technology', 'modern', 'appliance', 'home'];
+        const randomKeyword = imageKeywords[Math.floor(Math.random() * imageKeywords.length)];
+        const randomId = Math.floor(Math.random() * 1000) + 100;
+        
+        const placeholderUrl = `https://images.unsplash.com/photo-${randomId}?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80`;
+        
+        console.log(`⚠️ R2 failed, using placeholder: ${placeholderUrl}`);
+        
+        setSelectedProduct({
+          ...selectedProduct,
+          images: [...selectedProduct.images, placeholderUrl]
+        });
+        
+        alert(`⚠️ R2 upload failed for ${file.name}, placeholder image added. Error: ${(error as Error).message}`);
       }
     }
 
@@ -892,7 +913,7 @@ export default function AdminProductsPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6 border-b-2 border-gray-300 bg-gray-50 flex items-center justify-between">
@@ -907,7 +928,7 @@ export default function AdminProductsPage() {
                 </button>
               </div>
               
-              <div className="p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -1204,7 +1225,8 @@ export default function AdminProductsPage() {
                 </div>
               </div>
               
-              <div className="p-6 border-t-2 border-gray-300 bg-gray-50 flex items-center justify-end gap-3">
+              {/* Fixed Footer with Save Button */}
+              <div className="sticky bottom-0 p-6 border-t-2 border-gray-300 bg-gray-50 flex items-center justify-end gap-3 shadow-lg">
                 <button
                   onClick={() => setIsEditing(false)}
                   className="px-6 py-3 border-2 border-gray-400 rounded-lg hover:bg-gray-100 text-gray-900 font-medium"
@@ -1213,9 +1235,10 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   onClick={handleSaveProduct}
-                  className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-bold"
+                  disabled={saving}
+                  className="px-8 py-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-bold text-lg shadow-2xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed animate-pulse"
                 >
-                  {isCreating ? 'Ürün Ekle' : 'Güncelle'}
+                  {saving ? '⏳ Kaydediliyor...' : (isCreating ? '✅ Ürün Ekle' : '✅ Güncelle')}
                 </button>
               </div>
             </motion.div>
