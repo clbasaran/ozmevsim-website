@@ -74,14 +74,15 @@ export class DatabaseService {
   async createProduct(product: any) {
     try {
       const stmt = this.db.prepare(`
-        INSERT INTO products (title, description, price, image_url, category, brand, model, features, specifications, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO products (title, description, price, image_url, all_images, category, brand, model, features, specifications, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       const result = await stmt.bind(
         product.title,
         product.description,
         product.price,
         product.image_url,
+        product.all_images || '[]',
         product.category,
         product.brand,
         product.model,
@@ -100,7 +101,7 @@ export class DatabaseService {
     try {
       const stmt = this.db.prepare(`
         UPDATE products 
-        SET title = ?, description = ?, price = ?, image_url = ?, category = ?, 
+        SET title = ?, description = ?, price = ?, image_url = ?, all_images = ?, category = ?, 
             brand = ?, model = ?, features = ?, specifications = ?, status = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
@@ -109,6 +110,7 @@ export class DatabaseService {
         product.description,
         product.price,
         product.image_url,
+        product.all_images || '[]',
         product.category,
         product.brand,
         product.model,

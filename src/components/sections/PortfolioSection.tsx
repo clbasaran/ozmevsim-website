@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { 
@@ -38,7 +39,6 @@ interface Reference {
   createdAt: string;
   updatedAt: string;
 }
-import Image from 'next/image';
 
 const PortfolioSection = () => {
   const [activeFilter, setActiveFilter] = useState('all');

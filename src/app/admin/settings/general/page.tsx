@@ -194,8 +194,44 @@ const GeneralSettingsPage = () => {
     e.preventDefault();
     setIsSaving(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Prepare data for API
+      const settingsData = {
+        site_name: settings.siteName,
+        site_description: settings.siteDescription,
+        site_url: settings.siteUrl,
+        admin_email: settings.adminEmail,
+        timezone: settings.timezone,
+        language: settings.language,
+        date_format: settings.dateFormat,
+        time_format: settings.timeFormat,
+        maintenance_mode: settings.maintenanceMode ? '1' : '0',
+        registration_enabled: settings.registrationEnabled ? '1' : '0',
+        email_notifications: settings.emailNotifications ? '1' : '0',
+        sms_notifications: settings.smsNotifications ? '1' : '0'
+      };
+
+      // Save to API
+      const response = await fetch('/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settingsData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Settings saved successfully:', result);
+        alert('Ayarlar başarıyla kaydedildi!');
+      } else {
+        console.error('❌ Failed to save settings');
+        alert('Ayarlar kaydedilirken hata oluştu!');
+      }
+    } catch (error) {
+      console.error('❌ Error saving settings:', error);
+      alert('Ayarlar kaydedilirken hata oluştu!');
+    }
     
     setIsSaving(false);
     alert('Ayarlar başarıyla kaydedildi!');

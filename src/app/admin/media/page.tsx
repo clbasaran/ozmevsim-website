@@ -187,10 +187,26 @@ export default function AdminMediaPage() {
   const handleDeleteFile = async (id: string) => {
     if (confirm('Bu dosyayı silmek istediğinizden emin misiniz?')) {
       try {
-        // TODO: Implement R2 delete API call when available
-        const updated = files.filter(file => file.id !== id);
-        setFiles(updated);
-        alert('Dosya silindi. (Not: R2 silme işlemi henüz implementasyonda)');
+        const fileToDelete = files.find(f => f.id === id);
+        if (!fileToDelete) {
+          alert('Silinecek dosya bulunamadı.');
+          return;
+        }
+
+        // Call R2 delete API
+        const response = await fetch(`/api/upload-r2?file=${encodeURIComponent(fileToDelete.name)}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Refresh the file list
+          await loadFilesFromR2();
+          alert('Dosya başarıyla silindi!');
+        } else {
+          alert('Dosya silme hatası: ' + data.error);
+        }
       } catch (error) {
         console.error('Delete error:', error);
         alert('Dosya silinirken hata oluştu.');
@@ -217,6 +233,23 @@ export default function AdminMediaPage() {
     const updated = files.map(file => file.id === fileData.id ? fileData : file);
     setFiles(updated);
     setShowFileDetail(false);
+  };
+
+  const handleCopyLink = async (file: MediaFile) => {
+    try {
+      await navigator.clipboard.writeText(file.url);
+      alert('Dosya linki panoya kopyalandı!');
+    } catch (error) {
+      console.error('Link kopyalama hatası:', error);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = file.url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Dosya linki panoya kopyalandı!');
+    }
   };
 
   return (
@@ -429,27 +462,37 @@ export default function AdminMediaPage() {
                       <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                     </div>
 
-                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                       <button
                         onClick={() => {
                           setSelectedFile(file);
                           setShowFileDetail(true);
                         }}
+                        title="Görüntüle"
                         className="p-2 bg-white rounded-full text-gray-700 hover:bg-gray-100"
                       >
                         <EyeIcon className="w-4 h-4" />
                       </button>
                       <button
+                        onClick={() => handleCopyLink(file)}
+                        title="Linki Kopyala"
+                        className="p-2 bg-white rounded-full text-blue-600 hover:bg-blue-50"
+                      >
+                        <DocumentDuplicateIcon className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => {
                           setSelectedFile(file);
                           setShowFileDetail(true);
                         }}
-                        className="p-2 bg-white rounded-full text-gray-700 hover:bg-gray-100"
+                        title="Düzenle"
+                        className="p-2 bg-white rounded-full text-green-600 hover:bg-green-50"
                       >
                         <PencilIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteFile(file.id)}
+                        title="Sil"
                         className="p-2 bg-white rounded-full text-red-600 hover:bg-red-50"
                       >
                         <TrashIcon className="w-4 h-4" />
@@ -529,27 +572,37 @@ export default function AdminMediaPage() {
                           {new Date(file.uploadedAt).toLocaleDateString('tr-TR')}
                         </td>
                         <td className="px-4 py-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
+                          <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => {
                                 setSelectedFile(file);
                                 setShowFileDetail(true);
                               }}
+                              title="Görüntüle"
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                             >
                               <EyeIcon className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleCopyLink(file)}
+                              title="Linki Kopyala"
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                            >
+                              <DocumentDuplicateIcon className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => {
                                 setSelectedFile(file);
                                 setShowFileDetail(true);
                               }}
+                              title="Düzenle"
                               className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg"
                             >
                               <PencilIcon className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteFile(file.id)}
+                              title="Sil"
                               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                             >
                               <TrashIcon className="w-4 h-4" />

@@ -363,14 +363,14 @@ const loadFromStorage = async (key: string, defaultValue: any) => {
   }
 };
 
-// Hero Slides Management
-export const getHeroSlides = (): HeroSlide[] => {
-  return heroSlides.filter(slide => slide.isActive);
-};
+// Hero Slides Management - REMOVED - All data must come from API/database
+// export const getHeroSlides = (): HeroSlide[] => {
+//   return heroSlides.filter(slide => slide.isActive);
+// };
 
-export const getAllHeroSlides = (): HeroSlide[] => {
-  return heroSlides;
-};
+// export const getAllHeroSlides = (): HeroSlide[] => {
+//   return heroSlides;
+// };
 
 export const updateHeroSlide = (id: number, updatedSlide: Partial<HeroSlide>): boolean => {
   const index = heroSlides.findIndex(slide => slide.id === id);

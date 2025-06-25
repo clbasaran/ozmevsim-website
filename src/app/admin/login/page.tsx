@@ -20,32 +20,75 @@ export default function AdminLoginPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    try {
-      const authenticated = localStorage.getItem('admin_authenticated');
-      if (authenticated === 'true') {
-        router.push('/admin');
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('admin_token') || 
+                     document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1];
+        if (token) {
+          // Verify token with server
+          const response = await fetch('/api/admin-auth', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.authenticated) {
+              router.push('/admin');
+              return;
+            }
+          }
+          
+          // Invalid token, remove it
+          localStorage.removeItem('admin_token');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        localStorage.removeItem('admin_token');
       }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-    }
+    };
+
+    checkAuth();
   }, [router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate loading delay for security
-    setTimeout(() => {
-      if (password === 'mali06') {
-        localStorage.setItem('admin_authenticated', 'true');
+    try {
+      const response = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.token) {
+        // Store token securely in both localStorage and cookie
+        localStorage.setItem('admin_token', result.token);
+        
+        // Set cookie for middleware protection (without secure for localhost testing)
+        document.cookie = `admin_token=${result.token}; path=/; max-age=86400; samesite=strict`;
+        
+        // Redirect to admin panel
         router.push('/admin');
       } else {
-        setError('Hatalı şifre! Lütfen tekrar deneyin.');
+        setError(result.error || 'Giriş başarısız');
         setPassword('');
       }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Bağlantı hatası. Lütfen tekrar deneyin.');
+      setPassword('');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -61,6 +104,7 @@ export default function AdminLoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Panel</h1>
           <p className="text-gray-600">Öz Mevsim Yönetim Sistemi</p>
+          <p className="text-xs text-gray-500 mt-2">Güvenli Database Authentication</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -77,9 +121,10 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="admin-input w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-gray-900 placeholder-gray-500 bg-white"
                 style={{ color: '#111827', backgroundColor: '#ffffff' }}
-                placeholder="Şifrenizi girin"
+                placeholder="Database'den doğrulanacak şifre"
                 required
                 disabled={isLoading}
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -108,24 +153,32 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !password.trim()}
             className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Giriş yapılıyor...
+                Database'den doğrulanıyor...
               </div>
             ) : (
-              'Giriş Yap'
+              'Güvenli Giriş'
             )}
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500">
-            © 2024 Öz Mevsim. Tüm hakları saklıdır.
-          </p>
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="text-center space-y-2">
+            <p className="text-xs text-gray-500">
+              🔒 Şifre database'den güvenli olarak doğrulanır
+            </p>
+            <p className="text-xs text-gray-500">
+              🛡️ Session token ile oturum yönetimi
+            </p>
+            <p className="text-xs text-gray-500">
+              © 2024 Öz Mevsim. Tüm hakları saklıdır.
+            </p>
+          </div>
         </div>
       </motion.div>
     </div>

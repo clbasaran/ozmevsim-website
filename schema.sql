@@ -22,10 +22,15 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS blog_posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
+  slug TEXT UNIQUE,
   content TEXT,
   excerpt TEXT,
+  category TEXT DEFAULT 'general',
+  author TEXT DEFAULT 'Admin',
+  publish_date TEXT,
+  read_time INTEGER DEFAULT 5,
   featured_image TEXT,
-  author TEXT,
+  featured BOOLEAN DEFAULT FALSE,
   status TEXT DEFAULT 'published',
   tags TEXT, -- JSON array as string
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

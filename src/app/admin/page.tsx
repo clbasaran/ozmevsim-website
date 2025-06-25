@@ -62,14 +62,7 @@ ChartJS.register(
   Filler
 );
 
-interface AdminUser {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'editor' | 'viewer';
-  avatar?: string;
-  lastLogin: string;
-}
+// Removed AdminUser interface - no longer needed
 
 interface ContentItem {
   id: string;

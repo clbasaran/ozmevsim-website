@@ -127,7 +127,18 @@ export default function AdminProductsPage() {
                 key,
                 value: value as string
               })),
-          images: product.image_url ? [product.image_url] : [],
+          images: (() => {
+            // Try to load all images first, fall back to single image_url
+            try {
+              if (product.all_images) {
+                const parsed = JSON.parse(product.all_images);
+                return Array.isArray(parsed) ? parsed : [product.image_url || ''];
+              }
+              return product.image_url ? [product.image_url] : [];
+            } catch {
+              return product.image_url ? [product.image_url] : [];
+            }
+          })(),
           catalogPdf: '',
           price: product.price || 0,
           stockStatus: 'in-stock' as const,
@@ -222,7 +233,12 @@ export default function AdminProductsPage() {
   };
 
   const handleEditProduct = (product: Product) => {
-    setSelectedProduct(product);
+    // Ensure images is always an array
+    const productWithImages = {
+      ...product,
+      images: Array.isArray(product.images) ? product.images : (product.images ? [product.images] : [])
+    };
+    setSelectedProduct(productWithImages);
     setIsCreating(false);
     setIsEditing(true);
   };
@@ -253,6 +269,8 @@ export default function AdminProductsPage() {
         description: updatedProduct.description,
         price: updatedProduct.price,
         image_url: updatedProduct.images[0] || '',
+        // Store all images in a custom field for future use
+        all_images: JSON.stringify(updatedProduct.images),
         category: updatedProduct.category,
         brand: updatedProduct.subcategory || '',
         model: '',
@@ -282,7 +300,9 @@ export default function AdminProductsPage() {
       if (result.success) {
         // Update local state
         if (isCreating) {
-          setProducts([...products, { ...updatedProduct, id: result.data.id.toString() }]);
+          // API returns id directly for POST requests
+          const newId = result.id ? result.id.toString() : Date.now().toString();
+          setProducts([...products, { ...updatedProduct, id: newId }]);
         } else {
           setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
         }
@@ -291,6 +311,9 @@ export default function AdminProductsPage() {
         setSelectedProduct(null);
         setIsCreating(false);
         alert('✅ Ürün başarıyla kaydedildi!');
+        
+        // Reload products to get fresh data from database
+        await loadProductsFromAPI();
       } else {
         throw new Error(result.error || 'Save failed');
       }
@@ -451,6 +474,76 @@ export default function AdminProductsPage() {
     } else {
       setSelectedProducts([...selectedProducts, productId]);
     }
+  };
+
+  // Image handling functions
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || !selectedProduct) return;
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const maxSize = 10 * 1024 * 1024; // 10MB limit
+
+    for (const file of Array.from(files)) {
+      // Validate file type
+      if (!allowedTypes.includes(file.type)) {
+        alert(`Geçersiz dosya formatı: ${file.name}. Sadece JPG, JPEG ve PNG dosyaları desteklenir.`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > maxSize) {
+        alert(`Dosya çok büyük: ${file.name}. Maksimum dosya boyutu 10MB olmalıdır.`);
+        continue;
+      }
+
+      try {
+        console.log(`🔄 Uploading ${file.name} to R2...`);
+        
+        // Upload to R2 via API
+        const formData = new FormData();
+        formData.append('files', file);
+        formData.append('folder', 'products');
+        
+        const uploadResponse = await fetch('/api/upload-r2', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const uploadResult = await uploadResponse.json();
+        console.log('📤 Upload result:', uploadResult);
+        
+        if (uploadResult.success && uploadResult.data && uploadResult.data.length > 0) {
+          const uploadedFile = uploadResult.data[0];
+          console.log(`✅ Successfully uploaded: ${uploadedFile.url}`);
+          
+          setSelectedProduct({
+            ...selectedProduct,
+            images: [...selectedProduct.images, uploadedFile.url]
+          });
+          
+          alert(`✅ ${file.name} başarıyla yüklendi!`);
+        } else {
+          throw new Error(uploadResult.error || 'Upload failed');
+        }
+      } catch (error) {
+        console.error('❌ Image upload error:', error);
+        alert('❌ Resim yüklenirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
+      }
+    }
+
+    // Reset input
+    event.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    if (!selectedProduct) return;
+    
+    const newImages = selectedProduct.images.filter((_, i) => i !== index);
+    setSelectedProduct({
+      ...selectedProduct,
+      images: newImages
+    });
   };
 
   if (isLoading) {
@@ -932,6 +1025,67 @@ export default function AdminProductsPage() {
                     className="w-full px-3 py-2 border-2 border-gray-500 rounded-lg focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
                     placeholder="HTML etiketleri kullanabilirsiniz..."
                   />
+                </div>
+
+                {/* Image Upload Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-medium text-gray-900 font-bold">
+                      Ürün Resimleri
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                      className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      <PhotoIcon className="w-4 h-4" />
+                      Resim Ekle
+                    </button>
+                  </div>
+                  
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  
+                  {/* Image Preview Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    {selectedProduct.images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Ürün resmi ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border-2 border-gray-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {/* Add Image Placeholder */}
+                    {selectedProduct.images.length === 0 && (
+                      <div 
+                        onClick={() => document.getElementById('image-upload')?.click()}
+                        className="w-full h-32 border-2 border-dashed border-gray-400 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                      >
+                        <PhotoIcon className="w-8 h-8 text-gray-400 mb-2" />
+                        <span className="text-sm text-gray-500">Resim Ekle</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <p className="text-xs text-gray-500">
+                    PNG, JPG, JPEG formatları desteklenir. Maksimum dosya boyutu: 2MB
+                  </p>
                 </div>
 
                 {/* Specifications */}

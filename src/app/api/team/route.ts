@@ -103,8 +103,8 @@ export async function GET(request: NextRequest) {
     
     filteredTeam.sort((a, b) => a.order - b.order);
 
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json({ 
+      success: true, 
       data: filteredTeam,
       count: filteredTeam.length
     });
@@ -134,8 +134,8 @@ export async function POST(request: NextRequest) {
 
     // In a real app, you would save to database
     // For now, just return success
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json({ 
+      success: true, 
       message: 'Team member added successfully',
       data: { id: Date.now(), ...data }
     });
@@ -163,7 +163,7 @@ export async function PUT(request: NextRequest) {
     // In a real app, you would update in database
     // For now, just return success
     return NextResponse.json({ 
-      success: true,
+      success: true, 
       message: 'Team member updated successfully',
       data: data 
     });

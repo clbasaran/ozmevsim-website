@@ -18,7 +18,7 @@ import {
   UserGroupIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
-import { getAllHeroSlides, updateHeroSlide, addHeroSlide, deleteHeroSlide, type HeroSlide as DataHeroSlide } from '@/lib/data';
+// Removed static data imports - now using API
 
 // Admin interface that matches the data.ts structure
 interface AdminHeroSlide {
@@ -27,9 +27,9 @@ interface AdminHeroSlide {
   subtitle: string;
   description: string;
   backgroundImage: string;
-  stats: Array<{ value: string; label: string }>;
-  primaryCTA: { text: string; href: string };
-  secondaryCTA: { text: string; href: string };
+  stats?: Array<{ value: string; label: string }>;
+  primaryCTA?: { text: string; href: string };
+  secondaryCTA?: { text: string; href: string };
   isActive: boolean;
 }
 
@@ -217,14 +217,26 @@ export default function AdminHomePage() {
   const [editingTestimonial, setEditingTestimonial] = useState<HomeTestimonial | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load actual hero slides from data.ts
+  // Load actual hero slides from API
   useEffect(() => {
-    const loadSlides = () => {
+    const loadSlides = async () => {
       try {
-        const heroSlides = getAllHeroSlides();
-        setSlides(heroSlides);
+        const response = await fetch('/hero-slides');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setSlides(result.data);
+          } else {
+            console.error('API returned error:', result);
+            setSlides([]);
+          }
+        } else {
+          console.error('API request failed:', response.status);
+          setSlides([]);
+        }
       } catch (error) {
         console.error('Error loading hero slides:', error);
+        setSlides([]);
       } finally {
         setLoading(false);
       }
@@ -269,25 +281,31 @@ export default function AdminHomePage() {
     // Settings are managed in state only
   }, [settings]);
 
-  const handleSaveSlide = (slideData: AdminHeroSlide) => {
+  const handleSaveSlide = async (slideData: AdminHeroSlide) => {
     try {
       if (editingSlide) {
-        updateHeroSlide(editingSlide.id, slideData);
+        // Update existing slide via API
+        await fetch('/hero-slides', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...slideData, id: editingSlide.id })
+        });
       } else {
-        addHeroSlide({
-          title: slideData.title,
-          subtitle: slideData.subtitle,
-          description: slideData.description,
-          backgroundImage: slideData.backgroundImage,
-          stats: slideData.stats,
-          primaryCTA: slideData.primaryCTA,
-          secondaryCTA: slideData.secondaryCTA,
-          isActive: slideData.isActive
+        // Create new slide via API
+        await fetch('/hero-slides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(slideData)
         });
       }
       
-      // Reload slides
-      setSlides(getAllHeroSlides());
+      // Reload slides from API
+      const response = await fetch('/hero-slides');
+      const result = await response.json();
+      if (result.success) {
+        setSlides(result.data);
+      }
+      
       setShowSlideForm(false);
       setEditingSlide(null);
     } catch (error) {
@@ -296,11 +314,16 @@ export default function AdminHomePage() {
     }
   };
 
-  const handleDeleteSlide = (id: number) => {
+  const handleDeleteSlide = async (id: number) => {
     if (confirm('Bu slide\'ı silmek istediğinizden emin misiniz?')) {
       try {
-        deleteHeroSlide(id);
-        setSlides(getAllHeroSlides());
+        await fetch(`/hero-slides?id=${id}`, { method: 'DELETE' });
+        // Reload slides from API
+        const response = await fetch('/hero-slides');
+        const result = await response.json();
+        if (result.success) {
+          setSlides(result.data);
+        }
       } catch (error) {
         console.error('Error deleting slide:', error);
         alert('Slide silinirken hata oluştu.');
@@ -308,11 +331,20 @@ export default function AdminHomePage() {
     }
   };
 
-  const handleToggleActive = (id: number) => {
+  const handleToggleActive = async (id: number) => {
     const slide = slides.find(s => s.id === id);
     if (slide) {
-      updateHeroSlide(id, { isActive: !slide.isActive });
-      setSlides(getAllHeroSlides());
+      await fetch('/hero-slides', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...slide, id, isActive: !slide.isActive })
+      });
+      // Reload slides from API
+      const response = await fetch('/hero-slides');
+      const result = await response.json();
+      if (result.success) {
+        setSlides(result.data);
+      }
     }
   };
 
@@ -430,7 +462,7 @@ export default function AdminHomePage() {
                             
                             {/* Stats */}
                             <div className="flex flex-wrap gap-2 mt-2">
-                              {slide.stats.slice(0, 4).map((stat, idx) => (
+                              {(slide.stats || []).slice(0, 4).map((stat, idx) => (
                                 <span key={idx} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                   {stat.value} {stat.label}
                                 </span>
@@ -439,12 +471,16 @@ export default function AdminHomePage() {
 
                             {/* CTAs */}
                             <div className="flex gap-2 mt-2">
-                              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                                {slide.primaryCTA.text}
-                              </span>
-                              <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                                {slide.secondaryCTA.text}
-                              </span>
+                              {slide.primaryCTA && (
+                                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                                  {slide.primaryCTA.text}
+                                </span>
+                              )}
+                              {slide.secondaryCTA && (
+                                <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                                  {slide.secondaryCTA.text}
+                                </span>
+                              )}
                             </div>
 
                             <div className="flex items-center gap-2 mt-2">
@@ -463,19 +499,27 @@ export default function AdminHomePage() {
                           </div>
                           <div className="flex items-center gap-1 ml-4">
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setEditingSlide(slide);
                                 setShowSlideForm(true);
                               }}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                               title="Düzenle"
+                              data-slide-id={slide.id}
+                              id={`edit-slide-${slide.id}`}
                             >
                               <PencilIcon className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDeleteSlide(slide.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSlide(slide.id);
+                              }}
                               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                               title="Sil"
+                              data-slide-id={slide.id}
+                              id={`delete-slide-${slide.id}`}
                             >
                               <TrashIcon className="w-4 h-4" />
                             </button>
@@ -995,14 +1039,14 @@ export default function AdminHomePage() {
                           <input
                             type="text"
                             name={`stat_value_${index}`}
-                            defaultValue={editingSlide?.stats[index]?.value || ''}
+                            defaultValue={editingSlide?.stats?.[index]?.value || ''}
                             placeholder="25+"
                             className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-gray-900 bg-white"
                           />
                           <input
                             type="text"
                             name={`stat_label_${index}`}
-                            defaultValue={editingSlide?.stats[index]?.label || ''}
+                            defaultValue={editingSlide?.stats?.[index]?.label || ''}
                             placeholder="Yıllık Deneyim"
                             className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-gray-900 bg-white"
                           />
@@ -1022,14 +1066,14 @@ export default function AdminHomePage() {
                       <input
                         type="text"
                         name="primaryCTA_text"
-                        defaultValue={editingSlide?.primaryCTA.text}
+                        defaultValue={editingSlide?.primaryCTA?.text || ''}
                         placeholder="İletişim"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 bg-white"
                       />
                       <input
                         type="text"
                         name="primaryCTA_href"
-                        defaultValue={editingSlide?.primaryCTA.href}
+                        defaultValue={editingSlide?.primaryCTA?.href || ''}
                         placeholder="tel:+903123570600"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 bg-white"
                       />
@@ -1044,14 +1088,14 @@ export default function AdminHomePage() {
                       <input
                         type="text"
                         name="secondaryCTA_text"
-                        defaultValue={editingSlide?.secondaryCTA.text}
+                        defaultValue={editingSlide?.secondaryCTA?.text || ''}
                         placeholder="Online Randevu"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 bg-white"
                       />
                       <input
                         type="text"
                         name="secondaryCTA_href"
-                        defaultValue={editingSlide?.secondaryCTA.href}
+                        defaultValue={editingSlide?.secondaryCTA?.href || ''}
                         placeholder="/randevu"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 bg-white"
                       />

@@ -9,76 +9,95 @@ import {
   ArrowRightIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/solid';
-import { type HeroSlide, getHeroSlides } from '@/lib/data';
+// Hero slides now come exclusively from API/database
 
-// Brand logos data
-const brandLogos = [
-  {
-    name: 'Bosch',
-    logo: '/uploads/brands/bosch-seeklogo.png',
-    alt: 'Bosch Logo'
-  },
-  {
-    name: 'Vaillant',
-    logo: '/uploads/brands/vaillant-new-seeklogo.png',
-    alt: 'Vaillant Logo'
-  },
-  {
-    name: 'Buderus',
-    logo: '/uploads/brands/buderus.png',
-    alt: 'Buderus Logo'
-  },
-  {
-    name: 'Baymak',
-    logo: '/uploads/brands/baymak-seeklogo.png',
-    alt: 'Baymak Logo'
-  },
-  {
-    name: 'ECA',
-    logo: '/uploads/brands/eca-seeklogo.png',
-    alt: 'ECA Logo'
-  },
-  {
-    name: 'Demirdöküm',
-    logo: '/uploads/brands/demirdokum.png',
-    alt: 'Demirdöküm Logo'
-  }
-];
+// Define HeroSlide interface
+interface HeroSlide {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  backgroundImage: string;
+  stats: Array<{ value: string; label: string }>;
+  primaryCTA: { text: string; href: string };
+  secondaryCTA: { text: string; href: string };
+}
+
+// Brand interface
+interface Brand {
+  id: number;
+  name: string;
+  logo_url: string;
+  alt_text: string;
+  website_url?: string;
+}
 
 const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [slides, setSlides] = useState<HeroSlide[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load hero slides from API
+  // Load hero slides and brands from API
   useEffect(() => {
-    const loadHeroSlides = async () => {
+    const loadData = async () => {
       try {
-        const response = await fetch('/api/hero-slides');
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            const activeSlides = result.data.filter((slide: any) => slide.isActive);
-            setSlides(activeSlides);
+        // Load hero slides
+        const slidesResponse = await fetch('/hero-slides');
+        if (slidesResponse.ok) {
+          const slidesResult = await slidesResponse.json();
+          if (slidesResult.success) {
+            console.log('🎬 HeroSection: Loaded slides from API:', slidesResult.data.length);
+            
+            // Transform API data to component format
+            const transformedSlides = slidesResult.data
+              .filter((slide: any) => slide.active || slide.isActive)
+              .map((slide: any) => ({
+                id: slide.id,
+                title: slide.title,
+                subtitle: slide.subtitle,
+                description: slide.description,
+                backgroundImage: slide.image || slide.backgroundImage || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=1080&fit=crop',
+                stats: slide.stats || [
+                  { value: '25+', label: 'Yıl Deneyim' },
+                  { value: '2500+', label: 'Proje' },
+                  { value: '%99', label: 'Müşteri Memnuniyeti' },
+                  { value: '7/24', label: 'Destek' }
+                ],
+                primaryCTA: {
+                  text: slide.ctaText || slide.primaryCTA?.text || 'Hemen Ara',
+                  href: slide.ctaLink || slide.primaryCTA?.href || '/iletisim'
+                },
+                secondaryCTA: {
+                  text: slide.secondaryCTA?.text || 'Randevu Al',
+                  href: slide.secondaryCTA?.href || '/randevu'
+                }
+              }));
+            
+            setSlides(transformedSlides);
           }
-        } else {
-          // Fallback to default slides if API fails
-          console.log('API failed, using default slides');
-          const fallbackSlides = getHeroSlides();
-          setSlides(fallbackSlides);
+        }
+
+        // Load brands
+        const brandsResponse = await fetch('/brands');
+        if (brandsResponse.ok) {
+          const brandsResult = await brandsResponse.json();
+          if (brandsResult.success) {
+            console.log('🏢 HeroSection: Loaded brands from API:', brandsResult.data.length);
+            setBrands(brandsResult.data);
+          }
         }
       } catch (error) {
-        console.error('Failed to load hero slides:', error);
-        // Fallback to default slides
-        const fallbackSlides = getHeroSlides();
-        setSlides(fallbackSlides);
+        console.error('Failed to load data:', error);
+        setSlides([]);
+        setBrands([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadHeroSlides();
+    loadData();
   }, []);
 
   // Auto-play for hero slides
@@ -177,17 +196,40 @@ const HeroSection = () => {
                 {currentSlideData.description}
               </p>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                {currentSlideData.stats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-3xl md:text-4xl font-bold text-gold mb-2">
-                      {stat.value}
-                    </div>
-                    <div className="text-sm text-gray-300">{stat.label}</div>
+              {/* Stats or Brand Logos */}
+              {currentSlideData.title === 'İş Ortaklarımız' ? (
+                <div className="mb-8">
+                  <div className="text-center mb-6">
+                    <p className="text-lg text-gray-300 mb-4">Güvenilir Marka Ortaklarımız</p>
                   </div>
-                ))}
-              </div>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
+                    {brands.map((brand: Brand, brandIndex: number) => (
+                      <div 
+                        key={brandIndex} 
+                        className="group bg-white/95 backdrop-blur-sm rounded-xl p-3 md:p-4 flex items-center justify-center hover:bg-white hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border border-white/20"
+                      >
+                        <img
+                          src={brand.logo_url}
+                          alt={brand.alt_text}
+                          className="w-full h-auto max-h-10 md:max-h-12 object-contain opacity-85 group-hover:opacity-100 transition-opacity duration-300"
+                          style={{ filter: 'contrast(1.1) saturate(0.9)' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                  {currentSlideData.stats.map((stat, index) => (
+                    <div key={index} className="text-center">
+                      <div className="text-3xl md:text-4xl font-bold text-gold mb-2">
+                        {stat.value}
+                      </div>
+                      <div className="text-sm text-gray-300">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -225,26 +267,7 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              {/* Brand Partners - Only show on 4th slide (İş Ortaklarımız) */}
-              {currentSlide === 3 && (
-                <div className="mt-8 pt-6 border-t border-white/20">
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
-                    {brandLogos.map((brand, brandIndex) => (
-                      <div 
-                        key={brandIndex} 
-                        className="group bg-white/90 rounded-lg p-3 md:p-4 flex items-center justify-center hover:bg-white hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                      >
-                        <img
-                          src={brand.logo}
-                          alt={brand.alt}
-                          className="w-full h-auto max-h-12 md:max-h-16 object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{ filter: 'contrast(1.1) saturate(0.9)' }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
         </div>

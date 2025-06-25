@@ -134,8 +134,8 @@ export async function GET(request: NextRequest) {
       filteredReferences = filteredReferences.filter(ref => ref.category === category);
     }
 
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json({ 
+      success: true, 
       data: filteredReferences,
       count: filteredReferences.length
     });
@@ -175,8 +175,8 @@ export async function POST(request: NextRequest) {
     // In a real app, save to database
     defaultReferences.push(newReference);
 
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json({ 
+      success: true, 
       data: newReference,
       message: 'Reference created successfully'
     });
@@ -226,8 +226,8 @@ export async function PUT(request: NextRequest) {
 
     defaultReferences[index] = updatedReference;
 
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json({ 
+      success: true, 
       data: updatedReference,
       message: 'Reference updated successfully'
     });
@@ -254,7 +254,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-
+    
     if (!id) {
       return NextResponse.json({ 
         success: false, 
@@ -272,9 +272,9 @@ export async function DELETE(request: NextRequest) {
 
     defaultReferences.splice(index, 1);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Reference deleted successfully'
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Reference deleted successfully' 
     });
 
   } catch (error) {

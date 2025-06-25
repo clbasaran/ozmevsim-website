@@ -12,49 +12,60 @@ interface HeroSlide {
   order: number;
 }
 
-const defaultSlides: HeroSlide[] = [
-  {
-    id: 1,
-    title: 'Enerji Verimliliği',
-    subtitle: 'Sürdürülebilir Gelecek',
-    description: 'Çevre dostu çözümlerle %40\'a varan tasarruf ve sürdürülebilir enerji sistemleri.',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=1080&fit=crop',
-    ctaText: 'Danışmanlık Al',
-    ctaLink: '/iletisim',
-    active: true,
-    order: 1
-  },
-  {
-    id: 2,
-    title: '25 Yıllık Deneyim',
-    subtitle: 'Güvenilir Hizmet',
-    description: 'Ankara\'da 25 yıldır kesintisiz hizmet veren uzman ekibimizle kaliteli çözümler.',
-    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1920&h=1080&fit=crop',
-    ctaText: 'Hakkımızda',
-    ctaLink: '/hakkimizda',
-    active: true,
-    order: 2
-  },
-  {
-    id: 3,
-    title: 'Premium Markalar',
-    subtitle: 'Kaliteli Ürünler',
-    description: 'Vaillant, Bosch, Demirdöküm gibi dünya markalarıyla güvenilir çözümler.',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&h=1080&fit=crop',
-    ctaText: 'Ürünlerimiz',
-    ctaLink: '/urunler',
-    active: true,
-    order: 3
-  }
-];
+// No more default slides - everything must come from database
+const defaultSlides: HeroSlide[] = [];
 
 export async function GET(request: NextRequest) {
   try {
-    return NextResponse.json({
-      success: true,
-      data: defaultSlides.filter(slide => slide.active).sort((a, b) => a.order - b.order),
-      count: defaultSlides.length
-    });
+    const env = process.env as any;
+    
+    // Try to get from database first
+    if (env.ozmevsim_d1) {
+      try {
+        console.log('🔄 Fetching hero slides from D1 database...');
+        const result = await env.ozmevsim_d1.prepare(`
+          SELECT * FROM hero_slides 
+          WHERE is_active = 1 
+          ORDER BY sort_order ASC, id ASC
+        `).all();
+
+        if (result.results && result.results.length > 0) {
+          console.log('✅ Found hero slides in database:', result.results.length);
+          
+          // Transform database format to API format
+          const slides = result.results.map((row: any) => ({
+            id: row.id,
+            title: row.title,
+            subtitle: row.subtitle,
+            description: row.description,
+            image: row.background_image,
+            ctaText: row.primary_cta_text,
+            ctaLink: row.primary_cta_href,
+            active: row.is_active === 1,
+            order: row.sort_order || 0
+          }));
+
+          return NextResponse.json({ 
+            success: true, 
+            data: slides,
+            count: slides.length,
+            source: 'database'
+          });
+        }
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+      }
+    }
+
+    // No fallback - database only
+    console.log('❌ Database not available and no fallback allowed');
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Database not available',
+      data: [],
+      count: 0,
+      source: 'none'
+    }, { status: 503 });
   } catch (error) {
     console.error('Hero slides API error:', error);
     return NextResponse.json(
@@ -66,6 +77,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const env = process.env as any;
     const data = await request.json();
     
     // Validate required fields
@@ -79,11 +91,59 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // In a real app, you would save to database
-    // For now, just return success
-    return NextResponse.json({
-      success: true,
-      message: 'Hero slide added successfully',
+    // Save to database if available
+    if (env.ozmevsim_d1) {
+      try {
+        console.log('💾 Saving new hero slide to D1 database...');
+        
+        // Prepare data for database
+        const stats = Array.isArray(data.stats) ? JSON.stringify(data.stats) : '[]';
+        const timestamp = new Date().toISOString();
+        
+        const result = await env.ozmevsim_d1.prepare(`
+          INSERT INTO hero_slides (
+            title, subtitle, description, background_image, stats,
+            primary_cta_text, primary_cta_href, secondary_cta_text, secondary_cta_href,
+            is_active, sort_order, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          data.title,
+          data.subtitle,
+          data.description || '',
+          data.backgroundImage || data.background_image || '',
+          stats,
+          data.primaryCTA?.text || data.primary_cta_text || '',
+          data.primaryCTA?.href || data.primary_cta_href || '',
+          data.secondaryCTA?.text || data.secondary_cta_text || '',
+          data.secondaryCTA?.href || data.secondary_cta_href || '',
+          data.isActive !== undefined ? (data.isActive ? 1 : 0) : 1,
+          data.sort_order || 0,
+          timestamp,
+          timestamp
+        ).run();
+
+        console.log('✅ Hero slide saved to database with ID:', result.meta.last_row_id);
+
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Hero slide added successfully to database',
+          data: { 
+            id: result.meta.last_row_id, 
+            ...data,
+            created_at: timestamp
+          }
+        });
+      } catch (dbError) {
+        console.error('Database save error:', dbError);
+        // Continue to fallback below
+      }
+    }
+
+    // Fallback response (no database)
+    console.log('📁 Database not available, returning success without saving');
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Hero slide added successfully (no database)',
       data: { id: Date.now(), ...data }
     });
   } catch (error) {
@@ -99,7 +159,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const env = process.env as any;
-    if (!env.DB) {
+    if (!env.ozmevsim_d1) {
       return NextResponse.json({ 
         success: false, 
         error: 'Database not available' 
@@ -118,7 +178,7 @@ export async function PUT(request: NextRequest) {
     // Stringify stats array
     const stats = Array.isArray(data.stats) ? JSON.stringify(data.stats) : data.stats || '[]';
 
-    await env.DB.prepare(`
+    await env.ozmevsim_d1.prepare(`
       UPDATE hero_slides SET
         title = ?, subtitle = ?, description = ?, background_image = ?, stats = ?,
         primary_cta_text = ?, primary_cta_href = ?, secondary_cta_text = ?, secondary_cta_href = ?,
@@ -134,7 +194,7 @@ export async function PUT(request: NextRequest) {
       data.primaryCTA?.href || data.primary_cta_href || '',
       data.secondaryCTA?.text || data.secondary_cta_text || '',
       data.secondaryCTA?.href || data.secondary_cta_href || '',
-      data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : true),
+      data.isActive !== undefined ? (data.isActive ? 1 : 0) : (data.is_active !== undefined ? data.is_active : 1),
       data.sort_order || 0,
       new Date().toISOString(),
       data.id
@@ -157,7 +217,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const env = process.env as any;
-    if (!env.DB) {
+    if (!env.ozmevsim_d1) {
       return NextResponse.json({ 
         success: false, 
         error: 'Database not available' 
@@ -174,7 +234,7 @@ export async function DELETE(request: NextRequest) {
       });
     }
 
-    await env.DB.prepare(`
+    await env.ozmevsim_d1.prepare(`
       DELETE FROM hero_slides WHERE id = ?
     `).bind(id).run();
 

@@ -11,7 +11,6 @@ import {
   CubeIcon,
   PhotoIcon,
   Cog6ToothIcon,
-  UserGroupIcon,
   ChartBarIcon,
   CloudArrowUpIcon,
   ChevronRightIcon,
@@ -23,6 +22,10 @@ import {
   ArrowRightOnRectangleIcon,
   SunIcon,
   MoonIcon,
+  ShieldCheckIcon,
+  DocumentTextIcon,
+  FolderIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
 
 interface MenuItem {
@@ -39,11 +42,145 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const pathname = usePathname();
   const router = useRouter();
+
+  // Debug pathname
+  console.log('🔍 ADMIN LAYOUT - Current pathname:', pathname);
+  
+  // Skip layout completely for login page
+  if (pathname === '/admin/login' || pathname === '/admin/login/' || pathname.endsWith('/admin/login') || pathname.endsWith('/admin/login/')) {
+    console.log('🚪 LOGIN PAGE - Skipping admin layout completely for:', pathname);
+    return <>{children}</>;
+  }
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['Sayfa Yönetimi', 'İçerik Yönetimi']);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // CRITICAL: Server-side authentication check for static export compatibility
+  useEffect(() => {
+    const performAuthCheck = async () => {
+      console.log('🔒 CRITICAL: Performing authentication check...');
+      
+      try {
+        // Skip authentication during static generation
+        if (typeof window === 'undefined') {
+          console.log('🏗️ Static generation detected - skipping auth check');
+          setIsAuthenticated(true);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Check multiple token sources
+        const token = localStorage.getItem('admin_token') || 
+                     document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1];
+        
+        console.log('🎫 Token found:', !!token);
+        
+        if (!token) {
+          console.log('🚫 NO TOKEN - Showing access denied');
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          return;
+        }
+
+        // Verify token with server
+        const response = await fetch('/api/admin-auth', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.authenticated) {
+            console.log('✅ Authentication verified');
+            setIsAuthenticated(true);
+          } else {
+            console.log('❌ Authentication failed - Invalid token');
+            localStorage.removeItem('admin_token');
+            document.cookie = 'admin_token=; path=/; max-age=0';
+            setIsAuthenticated(false);
+          }
+        } else {
+          console.log('❌ Auth server error');
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('🚨 Auth check error:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      performAuthCheck();
+    } else {
+      // For server-side rendering, assume authenticated for static generation
+      setIsAuthenticated(true);
+      setIsLoading(false);
+    }
+  }, []); // Remove router dependency to prevent infinite loop
+
+  // Re-verify periodically
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      console.log('🔄 Periodic auth verification...');
+      const token = localStorage.getItem('admin_token');
+      
+      if (!token) {
+        console.log('🚫 Token lost during session');
+        setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/admin-auth', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+          console.log('🚨 Session expired');
+          setIsAuthenticated(false);
+          localStorage.removeItem('admin_token');
+          document.cookie = 'admin_token=; path=/; max-age=0';
+        }
+      } catch (error) {
+        console.error('🚨 Periodic auth error:', error);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]); // Remove router dependency
+
+  const handleLogout = async () => {
+    console.log('🚪 Logging out...');
+    
+    const token = localStorage.getItem('admin_token');
+    if (token) {
+      try {
+        await fetch('/api/admin-auth', {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }
+    
+    localStorage.removeItem('admin_token');
+    document.cookie = 'admin_token=; path=/; max-age=0; samesite=strict';
+    setIsAuthenticated(false);
+  };
 
   const menuItems: MenuItem[] = [
     {
@@ -53,7 +190,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
     {
       title: 'Sayfa Yönetimi',
-      icon: <DocumentDuplicateIcon className="w-5 h-5" />,
+      icon: <DocumentTextIcon className="w-5 h-5" />,
       subItems: [
         { title: 'Hakkımızda', href: '/admin/pages/about' },
         { title: 'Ürünler', href: '/admin/pages/products' },
@@ -88,19 +225,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       ],
     },
     {
-      title: 'Kullanıcılar',
-      icon: <UserGroupIcon className="w-5 h-5" />,
-      badge: 3,
-      href: '/admin/users',
-    },
-    {
       title: 'Raporlar',
       icon: <ChartBarIcon className="w-5 h-5" />,
       href: '/admin/reports',
     },
     {
       title: 'Yedekleme',
-      icon: <CloudArrowUpIcon className="w-5 h-5" />,
+      icon: <FolderIcon className="w-5 h-5" />,
       href: '/admin/backup',
     },
   ];
@@ -117,15 +248,49 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isParentActive = (subItems: any[]) => 
     subItems.some(item => pathname === item.href);
 
-  // Initialize admin sync system
+  // Initialize admin sync system only when authenticated
   useEffect(() => {
-    console.log('🎭 Admin Layout useEffect running - CLIENT SIDE');
-    console.log('🔄 Calling initializeAdminSync...');
-    console.log('🌍 Window check:', typeof window !== 'undefined');
-    initializeAdminSync();
-  }, []);
+    if (isAuthenticated) {
+      console.log('🎭 Admin Layout useEffect running - CLIENT SIDE');
+      console.log('🔄 Calling initializeAdminSync...');
+      console.log('🌍 Window check:', typeof window !== 'undefined');
+      initializeAdminSync();
+    }
+  }, [isAuthenticated]);
 
+  // Show loading screen during auth check
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="text-white mt-4">🔒 Güvenlik kontrolü yapılıyor...</p>
+        </div>
+      </div>
+    );
+  }
 
+  // Show access denied if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-white">
+          <ShieldCheckIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold mb-2">🚫 Erişim Reddedildi</h1>
+          <p className="text-gray-400 mb-4">Admin paneline erişim için kimlik doğrulama gerekli</p>
+          <button 
+            onClick={() => {
+              console.log('🔄 Navigating to login...');
+              window.location.href = '/admin/login';
+            }}
+            className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600"
+          >
+            Giriş Sayfasına Git
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
@@ -145,13 +310,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {isSidebarOpen && (
                 <div>
                   <h1 className="font-bold text-lg">Öz Mevsim</h1>
-                  <p className="text-xs text-gray-400">Admin Panel</p>
+                  <p className="text-xs text-gray-400">Güvenli Admin Panel</p>
                 </div>
               )}
             </Link>
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors lg:hidden"
+              className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
             >
               {isSidebarOpen ? (
                 <ChevronRightIcon className="w-5 h-5" />
@@ -244,19 +409,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </ul>
           </nav>
 
-          {/* User Menu */}
+          {/* Admin Menu */}
           <div className="p-4 border-t border-gray-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-bold">
-                AD
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center font-bold relative">
+                <ShieldCheckIcon className="w-5 h-5 text-white" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
               </div>
               {isSidebarOpen && (
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Admin User</p>
-                  <p className="text-xs text-gray-400">admin@ozmevsim.com</p>
+                  <p className="font-medium text-sm">Admin</p>
+                  <p className="text-xs text-green-400 flex items-center">
+                    <span className="w-2 h-2 bg-green-400 rounded-full mr-1 animate-pulse"></span>
+                    Database Authenticated
+                  </p>
                 </div>
               )}
-
+              {isSidebarOpen && (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-600 transition-colors text-red-400 hover:text-white bg-red-500/10 border border-red-500/20"
+                  title="Güvenli Çıkış"
+                >
+                  <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                  <span className="text-xs font-medium">Çıkış</span>
+                </button>
+              )}
             </div>
           </div>
         </aside>
@@ -291,6 +469,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               {/* Right Actions */}
               <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                  <ShieldCheckIcon className="w-3 h-3" />
+                  <span>Güvenli</span>
+                </div>
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -361,10 +543,70 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 initial={{ x: -300 }}
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
-                className="w-64 h-full bg-gray-900 text-white"
+                className="w-64 h-full bg-gray-900 text-white p-4"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Mobile menu content - same as desktop sidebar */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center font-bold text-lg shadow-lg">
+                      ÖM
+                    </div>
+                    <div>
+                      <h1 className="font-bold text-lg">Öz Mevsim</h1>
+                      <p className="text-xs text-gray-400">Güvenli Admin Panel</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <XMarkIcon className="w-5 h-5" />
+                  </button>
+                </div>
+                {/* Mobile menu items - same structure as desktop */}
+                <nav className="space-y-2">
+                  {menuItems.map((item) => (
+                    <div key={item.title}>
+                      {item.subItems ? (
+                        <div>
+                          <button
+                            onClick={() => toggleMenu(item.title)}
+                            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-700 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              {item.icon}
+                              <span className="font-medium">{item.title}</span>
+                            </div>
+                            <ChevronRightIcon className="w-4 h-4" />
+                          </button>
+                          {expandedMenus.includes(item.title) && (
+                            <div className="ml-6 mt-2 space-y-1">
+                              {item.subItems.map((subItem) => (
+                                <Link
+                                  key={subItem.href}
+                                  href={subItem.href}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="block p-2 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                                >
+                                  {subItem.title}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Link
+                          href={item.href || '#'}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                          {item.icon}
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                </nav>
               </motion.aside>
             </motion.div>
           )}

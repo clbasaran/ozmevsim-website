@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 
@@ -28,6 +28,43 @@ const Footer = dynamic(() => import('@/components/layout/Footer'), {
 });
 
 export default function Home() {
+  // Dynamic metadata loading
+  useEffect(() => {
+    const loadMetadata = async () => {
+      try {
+        const response = await fetch('/settings', {
+          cache: 'no-cache'
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const { site_name, site_description } = result.data;
+            
+            // Update document title
+            if (site_name) {
+              document.title = site_name;
+              console.log('📄 Updated page title to:', site_name);
+            }
+            
+            // Update meta description
+            if (site_description) {
+              const metaDescription = document.querySelector('meta[name="description"]');
+              if (metaDescription) {
+                metaDescription.setAttribute('content', site_description);
+                console.log('📄 Updated meta description to:', site_description);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.log('📄 Using default metadata:', error);
+      }
+    };
+
+    loadMetadata();
+  }, []);
+
   return (
     <main className="min-h-screen">
       {/* Header */}
