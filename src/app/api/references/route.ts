@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering for API routes
+export const dynamic = 'force-dynamic';
+
 interface Reference {
   id: number;
   title: string;
@@ -112,7 +115,7 @@ const defaultReferences: Reference[] = [
 // GET - Fetch all references or by query parameters
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const featured = searchParams.get('featured');
     const category = searchParams.get('category');
     const status = searchParams.get('status') || 'active';

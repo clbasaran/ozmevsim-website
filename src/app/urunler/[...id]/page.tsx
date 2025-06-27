@@ -4,6 +4,7 @@ import ProductDetailClient from './ProductDetailClient';
 
 // Dynamic product pages compatible with output: export mode
 export const dynamicParams = true;
+export const runtime = 'nodejs'; // Edge runtime yerine nodejs kullan
 
 interface ProductData {
   id: number;
@@ -232,17 +233,28 @@ async function getProductData(id: string) {
 
 // Static generation for known products, dynamic rendering for new ones
 export async function generateStaticParams() {
-  console.log('🎯 HYBRID MODE: Static pages for known products, client-side for new ones');
+  // Development'ta boş dön, production'da var olan ürünleri kullan
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 Development mode - returning empty static params');
+    return [];
+  }
+  
+  console.log('🎯 Production mode: Static pages for known products');
   
   try {
-    // Fetch existing products from API for static generation
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://ozmevsim.com'}/api/products`);
+    // Try to fetch from local API without external dependencies
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ozmevsim.com';
+    const response = await fetch(`${baseUrl}/api/products`, {
+      headers: {
+        'User-Agent': 'StaticGeneration/1.0'
+      }
+    });
     
     if (response.ok) {
       const result = await response.json();
       if (result.success && Array.isArray(result.data)) {
         const productIds = result.data.map((product: any) => ({ id: [product.id.toString()] }));
-        console.log('✅ Static generation for existing products:', productIds.map((p: any) => p.id[0]));
+        console.log('✅ Static generation for existing products:', productIds.length, 'products');
         return productIds;
       }
     }
@@ -250,9 +262,8 @@ export async function generateStaticParams() {
     console.warn('⚠️ API fetch failed, using fallback product IDs');
   }
   
-  // Fallback: Generate static pages for known products
-  // New products (added through admin) will be rendered client-side
-  const knownProductIds = ['3', '4', '5', '6', '8', '121', '122', '123', '126', '127', '128', '129', '131'];
+  // Fallback: Generate static pages for known products only
+  const knownProductIds = ['2', '3', '4', '5', '6', '8', '109'];
   console.log('📦 Static generation fallback:', knownProductIds);
   return knownProductIds.map(id => ({ id: [id] }));
 }

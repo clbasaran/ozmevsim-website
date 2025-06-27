@@ -448,46 +448,43 @@ export class DatabaseService {
   }
 }
 
-// Helper function to get database instance
+// Database bağlantısı için ana fonksiyon
 export function getDatabase(): D1Database | null {
-  // Development'ta önce setup yap
-  if (process.env.NODE_ENV !== 'production') {
-    setupDatabaseBinding();
+  // Cloudflare Pages Functions ortamında D1 binding'i kontrol et
+  if (typeof globalThis !== 'undefined') {
+    // Öncelikle ozmevsim_d1 binding'ini dene
+    if (globalThis.ozmevsim_d1) {
+      console.log('✅ Using ozmevsim_d1 D1 binding');
+      return globalThis.ozmevsim_d1;
+    }
+    
+    // Sonra DB binding'ini dene
+    if (globalThis.DB) {
+      console.log('✅ Using DB D1 binding');
+      return globalThis.DB;
+    }
   }
   
-  // API route'larda kullanım için
-  const apiDb = getApiDatabase();
-  if (apiDb) {
-    return apiDb;
-  }
-  
-  // Try different binding names
-  if (typeof globalThis !== 'undefined' && globalThis.ozmevsim_d1) {
-    return globalThis.ozmevsim_d1;
-  }
-  if (typeof globalThis !== 'undefined' && globalThis.DB) {
-    return globalThis.DB;
-  }
-  
-  // For development with wrangler pages dev
-  if (typeof process !== 'undefined' && process.env?.ozmevsim_d1) {
-    return process.env.ozmevsim_d1 as any;
-  }
-  
-  console.warn('Database not available. Using mock database for development.');
-  
-  // Development fallback - setup mock
-  if (process.env.NODE_ENV !== 'production') {
+  // Development ortamında mock database kullan
+  if (process.env.NODE_ENV === 'development') {
+    console.log('⚠️ Development mode - using mock database from database-setup');
     setupDatabaseBinding();
     return globalThis.ozmevsim_d1 || null;
   }
   
+  console.error('❌ No D1 database binding found');
   return null;
 }
 
-// Helper function to create database service
+// Ana export - database service oluşturucu
 export function createDatabaseService(): DatabaseService | null {
   const db = getDatabase();
-  if (!db) return null;
+  
+  if (!db) {
+    console.error('❌ Cannot create database service - no database available');
+    return null;
+  }
+  
+  console.log('✅ Database service created successfully');
   return new DatabaseService(db);
 } 

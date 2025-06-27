@@ -3,20 +3,43 @@ import { createDatabaseService } from '@/lib/database';
 import { revalidatePath } from 'next/cache';
 
 // Edge runtime for Cloudflare Pages
-export const runtime = 'edge';
+// export const runtime = 'edge';
+
+// Force dynamic rendering for API routes
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  console.log('🚀 API Products GET called');
   try {
     // Get database service
     const dbService = createDatabaseService();
+    console.log('📊 Database service:', !!dbService);
     if (!dbService) {
-      throw new Error('Database not available');
+      console.log('⚠️ Database not available, returning mock data');
+      return NextResponse.json({
+        success: true,
+        data: [
+          {
+            id: 1,
+            title: "Test Kombi",
+            description: "Test açıklama",
+            price: 1000,
+            image_url: "/images/products/test-kombi.jpg",
+            category: "kombi",
+            brand: "Test Marka",
+            features: ["Feature 1", "Feature 2"],
+            specifications: {"Power": "24kW"}
+          }
+        ]
+      });
     }
 
     // Get query parameters
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const id = searchParams.get('id');
     const status = searchParams.get('status') || 'active';
+
+    console.log('🔍 Query params:', { id, status });
 
     // If ID is provided, fetch single product
     if (id) {
@@ -65,7 +88,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all products from D1
+    console.log('📦 Fetching all products...');
     const products = await dbService.getProducts(status);
+    console.log('📦 Raw products count:', products.length);
 
     // Parse JSON fields
     const processedProducts = products.map((product: any) => ({
@@ -74,15 +99,17 @@ export async function GET(request: NextRequest) {
       specifications: typeof product.specifications === 'string' ? JSON.parse(product.specifications) : product.specifications,
     }));
 
+    console.log('✅ Processed products count:', processedProducts.length);
+
     return NextResponse.json({
       success: true,
       data: processedProducts
     });
 
   } catch (error: any) {
-    console.error('Products GET API Error:', error);
+    console.error('❌ Products GET API Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      { error: 'Failed to fetch products', details: error.message },
       { status: 500 }
     );
   }

@@ -18,7 +18,56 @@ interface MockD1PreparedStatement {
 // Development'ta kullanılacak mock database
 class MockDatabaseService implements MockD1Database {
   private data: Record<string, any[]> = {
-    products: [],
+    products: [
+      {
+        id: 1,
+        title: "Vaillant Kombi - ecoTEC plus VU 246/5-5",
+        description: "Yoğuşmalı kombi sistemi, yüksek verimlilik",
+        price: 8500,
+        image_url: "/uploads/products/vaillant-ecotec-plus.jpg",
+        all_images: JSON.stringify(["/uploads/products/vaillant-ecotec-plus.jpg"]),
+        category: "kombi",
+        brand: "Vaillant",
+        model: "ecoTEC plus VU 246/5-5",
+        features: JSON.stringify(["Yoğuşmalı teknoloji", "Yüksek verimlilik", "Kompakt tasarım"]),
+        specifications: JSON.stringify({"güç": "24 kW", "verimlilik": "%108", "boyutlar": "720x440x338 mm"}),
+        status: "active",
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z"
+      },
+      {
+        id: 2,
+        title: "Bosch Condens 1200W - 24 kW",
+        description: "Duvar tipi yoğuşmalı kombi",
+        price: 7200,
+        image_url: "/uploads/products/bosch-condens-1200w.jpg",
+        all_images: JSON.stringify(["/uploads/products/bosch-condens-1200w.jpg"]),
+        category: "kombi",
+        brand: "Bosch",
+        model: "Condens 1200W",
+        features: JSON.stringify(["Ekonomik", "Güvenilir", "Uzun ömürlü"]),
+        specifications: JSON.stringify({"güç": "24 kW", "verimlilik": "%94", "boyutlar": "700x400x299 mm"}),
+        status: "active",
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z"
+      },
+      {
+        id: 3,
+        title: "Ariston Clas One 24 FF NG",
+        description: "Yoğuşmalı kombi sistemi",
+        price: 6800,
+        image_url: "/uploads/products/ariston-clas-one.jpg",
+        all_images: JSON.stringify(["/uploads/products/ariston-clas-one.jpg"]),
+        category: "kombi",
+        brand: "Ariston",
+        model: "Clas One 24 FF NG",
+        features: JSON.stringify(["Düşük NOx emisyonu", "Sessiz çalışma", "Kompakt boyut"]),
+        specifications: JSON.stringify({"güç": "24 kW", "verimlilik": "%90", "boyutlar": "700x400x299 mm"}),
+        status: "active",
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z"
+      }
+    ],
     blog_posts: [],
     faqs: [],
     testimonials: [],
@@ -153,14 +202,30 @@ export function setupDatabaseBinding() {
 
 // API route'larda kullanılmak üzere database instance döndür
 export function getApiDatabase() {
-  // Production'da gerçek D1 binding'i kullanılacak
-  if (process.env.NODE_ENV === 'production') {
-    return globalThis.ozmevsim_d1 || globalThis.DB;
+  // Cloudflare Pages Functions ortamında D1 binding kontrolü
+  if (typeof globalThis !== 'undefined') {
+    // Öncelikle ozmevsim_d1 binding'ini kontrol et
+    if (globalThis.ozmevsim_d1) {
+      console.log('✅ API Database: Using ozmevsim_d1 D1 binding');
+      return globalThis.ozmevsim_d1;
+    }
+    
+    // Sonra DB binding'ini kontrol et
+    if (globalThis.DB) {
+      console.log('✅ API Database: Using DB D1 binding');
+      return globalThis.DB;
+    }
   }
   
-  // Development'ta mock kullan
-  setupDatabaseBinding();
-  return globalThis.ozmevsim_d1 || globalThis.DB;
+  // Development ortamında mock database kullan
+  if (process.env.NODE_ENV === 'development') {
+    console.log('⚠️ API Database: Development mode - setting up mock database');
+    setupDatabaseBinding();
+    return globalThis.ozmevsim_d1 || null;
+  }
+  
+  console.error('❌ API Database: No D1 binding found');
+  return null;
 }
 
 export default setupDatabaseBinding;

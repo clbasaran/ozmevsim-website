@@ -37,20 +37,25 @@ interface MenuItem {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  console.log('🏗️ AdminLayout component rendering - SERVER:', typeof window === 'undefined');
-  console.log('🏗️ AdminLayout component rendering - CLIENT:', typeof window !== 'undefined');
-  
-  const pathname = usePathname();
+  const [pathname, setPathname] = useState('');
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
-
-  // Debug pathname
-  console.log('🔍 ADMIN LAYOUT - Current pathname:', pathname);
+  
+  // Client-side hydration check
+  useEffect(() => {
+    setIsClient(true);
+    setPathname(window.location.pathname);
+  }, []);
+  
+  // Use usePathname only on client-side
+  const clientPathname = isClient ? usePathname() : pathname;
   
   // Skip layout completely for login page
-  if (pathname === '/admin/login' || pathname === '/admin/login/' || pathname.endsWith('/admin/login') || pathname.endsWith('/admin/login/')) {
-    console.log('🚪 LOGIN PAGE - Skipping admin layout completely for:', pathname);
+  if (clientPathname === '/admin/login' || clientPathname === '/admin/login/' || clientPathname.endsWith('/admin/login') || clientPathname.endsWith('/admin/login/')) {
+    console.log('🚪 LOGIN PAGE - Skipping admin layout completely for:', clientPathname);
     return <>{children}</>;
   }
+
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['Sayfa Yönetimi', 'İçerik Yönetimi']);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -59,34 +64,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // CRITICAL: Server-side authentication check for static export compatibility
+  // Simplified authentication check - no external API calls
   useEffect(() => {
+    if (!isClient) return;
+    
     const performAuthCheck = async () => {
-      console.log('🔒 CRITICAL: Performing authentication check...');
+      console.log('🔒 Performing local authentication check...');
       
       try {
-        // Skip authentication during static generation
-        if (typeof window === 'undefined') {
-          console.log('🏗️ Static generation detected - skipping auth check');
-          setIsAuthenticated(true);
-          setIsLoading(false);
-          return;
-        }
-        
-        // Check multiple token sources
+        // Check local token
         const token = localStorage.getItem('admin_token') || 
                      document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1];
         
         console.log('🎫 Token found:', !!token);
         
         if (!token) {
-          console.log('🚫 NO TOKEN - Showing access denied');
+          console.log('🚫 NO TOKEN - Redirecting to login');
           setIsAuthenticated(false);
           setIsLoading(false);
+          router.push('/admin/login');
           return;
         }
 
-        // Verify token with server
+        // Verify token with local API only
         const response = await fetch('/api/admin-auth', {
           method: 'GET',
           headers: {
@@ -105,32 +105,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             localStorage.removeItem('admin_token');
             document.cookie = 'admin_token=; path=/; max-age=0';
             setIsAuthenticated(false);
+            router.push('/admin/login');
           }
         } else {
           console.log('❌ Auth server error');
           setIsAuthenticated(false);
+          router.push('/admin/login');
         }
       } catch (error) {
         console.error('🚨 Auth check error:', error);
         setIsAuthenticated(false);
+        router.push('/admin/login');
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Only run on client side
-    if (typeof window !== 'undefined') {
-      performAuthCheck();
-    } else {
-      // For server-side rendering, assume authenticated for static generation
-      setIsAuthenticated(true);
-      setIsLoading(false);
-    }
-  }, []); // Remove router dependency to prevent infinite loop
+    performAuthCheck();
+  }, [isClient, router]);
 
   // Re-verify periodically
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isClient) return;
 
     const interval = setInterval(async () => {
       console.log('🔄 Periodic auth verification...');
@@ -139,6 +135,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (!token) {
         console.log('🚫 Token lost during session');
         setIsAuthenticated(false);
+        router.push('/admin/login');
         return;
       }
 
@@ -153,6 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setIsAuthenticated(false);
           localStorage.removeItem('admin_token');
           document.cookie = 'admin_token=; path=/; max-age=0';
+          router.push('/admin/login');
         }
       } catch (error) {
         console.error('🚨 Periodic auth error:', error);
@@ -160,7 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => clearInterval(interval);
-  }, [isAuthenticated]); // Remove router dependency
+  }, [isAuthenticated, isClient, router]);
 
   const handleLogout = async () => {
     console.log('🚪 Logging out...');
@@ -180,6 +178,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     localStorage.removeItem('admin_token');
     document.cookie = 'admin_token=; path=/; max-age=0; samesite=strict';
     setIsAuthenticated(false);
+    router.push('/admin/login');
   };
 
   const menuItems: MenuItem[] = [
@@ -244,9 +243,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   };
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => clientPathname === href;
   const isParentActive = (subItems: any[]) => 
-    subItems.some(item => pathname === item.href);
+    subItems.some(item => clientPathname === item.href);
 
   // Initialize admin sync system only when authenticated
   useEffect(() => {
@@ -505,7 +504,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </Link>
                 <ChevronRightIcon className="w-4 h-4" />
                 <span className="text-gray-900 dark:text-gray-200">
-                  {pathname.split('/').slice(2).join(' / ') || 'Dashboard'}
+                  {clientPathname.split('/').slice(2).join(' / ') || 'Dashboard'}
                 </span>
               </nav>
             </div>
@@ -516,7 +515,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="p-6">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={pathname}
+                  key={clientPathname}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}

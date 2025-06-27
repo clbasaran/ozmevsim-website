@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Edge runtime for Cloudflare Pages
-export const runtime = 'edge';
+// export const runtime = 'edge';
 import { createDatabaseService } from '@/lib/database';
+
+// Force dynamic rendering for API routes
+export const dynamic = 'force-dynamic';
 
 interface BlogPost {
   id: string;
@@ -33,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get query parameters
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const status = searchParams.get('status') || 'published';
 
     // Fetch blog posts from D1
@@ -133,7 +136,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const id = searchParams.get('id');
 
     if (!id) {

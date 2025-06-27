@@ -11,12 +11,12 @@ async function getProductsData() {
   try {
     console.log('🔧 Server-side: Fetching products data');
 
-    // Runtime API call for dynamic updates
+    // Development'ta local API kullan
     const baseUrl = process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
-      : 'https://13edf8b0.ozmevsim-website.pages.dev';
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://ozmevsim.com');
     
-    const response = await fetch(`${baseUrl}/products`, {
+    const response = await fetch(`${baseUrl}/api/products`, {
       headers: {
         'User-Agent': 'ProductsPage/1.0'
       },
