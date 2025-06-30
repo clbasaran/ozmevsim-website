@@ -1,35 +1,119 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ProductStorage } from '@/lib/file-storage';
 
 export const dynamic = 'force-dynamic';
-// export const runtime = 'edge'; // REMOVED - File operations need Node.js runtime
+export const runtime = 'edge'; // Re-enable edge runtime for D1 compatibility
+
+// D1 Database helper functions
+function getDB(context: any) {
+  if (context?.env?.ozmevsim_d1) {
+    return context.env.ozmevsim_d1;
+  }
+  
+  // Fallback to in-memory products for development
+  console.log('⚠️ No D1 database available, using fallback data');
+  return null;
+}
+
+// Fallback products for development/testing
+const fallbackProducts = [
+  {
+    id: 1,
+    title: 'Bosch Condens 8300iW',
+    description: 'Yüksek verimli kombi sistemi',
+    image_url: '/uploads/products/bosch/bosch-condens-8300iw.png',
+    category: 'Kombi',
+    brand: 'Bosch',
+    features: '["Yüksek verim", "Düşük emisyon", "Sessiz çalışma"]',
+    specifications: '[{"key":"Güç","value":"24 kW"},{"key":"Verim","value":"%93"}]',
+    status: 'active',
+    price: 15000,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    title: 'DemirDöküm Nitromix',
+    description: 'Güvenilir ve dayanıklı kombi',
+    image_url: '/uploads/products/demirdokum/demirdokum-nitromix-kombi.png',
+    category: 'Kombi',
+    brand: 'DemirDöküm',
+    features: '["Uzun ömür", "Kolay bakım", "Güvenli"]',
+    specifications: '[{"key":"Güç","value":"28 kW"},{"key":"Garanti","value":"5 yıl"}]',
+    status: 'active',
+    price: 12000,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 3,
+    title: 'Vaillant EcoTec Plus',
+    description: 'Premium kalite kombi sistemi',
+    image_url: '/uploads/products/vaillant/vaillant-ecotec-plus.png',
+    category: 'Kombi',
+    brand: 'Vaillant',
+    features: '["Premium kalite", "Akıllı kontrol", "Enerji tasarrufu"]',
+    specifications: '[{"key":"Güç","value":"32 kW"},{"key":"Sınıf","value":"A+"}]',
+    status: 'active',
+    price: 18000,
+    created_at: new Date().toISOString()
+  }
+];
 
 // GET - Retrieve products (all or by ID)
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, context: any) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const db = getDB(context);
+
+    if (!db) {
+      // Use fallback data when D1 not available
+      if (id) {
+        const product = fallbackProducts.find(p => p.id === parseInt(id));
+        if (!product) {
+          return NextResponse.json({
+            success: false,
+            error: 'Product not found'
+          }, { status: 404 });
+        }
+        return NextResponse.json({
+          success: true,
+          data: product
+        });
+      } else {
+        console.log('✅ Products API - Retrieved fallback products:', fallbackProducts.length);
+        return NextResponse.json({
+          success: true,
+          data: fallbackProducts
+        });
+      }
+    }
 
     if (id) {
-      // Get specific product by ID
-      const product = ProductStorage.getById(parseInt(id));
+      // Get specific product by ID from D1
+      const product = await db.prepare(
+        'SELECT * FROM products WHERE id = ?'
+      ).bind(id).first();
+      
       if (!product) {
         return NextResponse.json({
           success: false,
           error: 'Product not found'
         }, { status: 404 });
       }
+      
       return NextResponse.json({
         success: true,
         data: product
       });
     } else {
-      // Get all products
-      const products = ProductStorage.getAll();
-      console.log('✅ Products API - Retrieved products:', products.length);
+      // Get all products from D1
+      const { results } = await db.prepare(
+        'SELECT * FROM products WHERE status = ? ORDER BY created_at DESC'
+      ).bind('active').all();
+      
+      console.log('✅ Products API - Retrieved D1 products:', results.length);
       return NextResponse.json({
         success: true,
-        data: products
+        data: results
       });
     }
   } catch (error) {
@@ -42,12 +126,21 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Create new product
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, context: any) {
   try {
     const body = await request.json();
+    const db = getDB(context);
+    
     console.log('📝 Creating new product:', body.title);
 
-    const newProduct = ProductStorage.create({
+    if (!db) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not available'
+      }, { status: 503 });
+    }
+
+    const newProduct = {
       title: body.title || '',
       description: body.description || '',
       image_url: body.image_url || '',
@@ -56,14 +149,36 @@ export async function POST(request: NextRequest) {
       features: body.features || '[]',
       specifications: body.specifications || '[]',
       status: body.status || 'active',
-      price: parseInt(body.price) || 0
-    });
+      price: parseInt(body.price) || 0,
+      created_at: new Date().toISOString()
+    };
 
-    console.log('✅ Product created successfully:', newProduct.id);
+    const result = await db.prepare(`
+      INSERT INTO products (title, description, image_url, category, brand, features, specifications, status, price, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      newProduct.title,
+      newProduct.description,
+      newProduct.image_url,
+      newProduct.category,
+      newProduct.brand,
+      newProduct.features,
+      newProduct.specifications,
+      newProduct.status,
+      newProduct.price,
+      newProduct.created_at
+    ).run();
+
+    const createdProduct = {
+      id: result.meta.last_row_id,
+      ...newProduct
+    };
+
+    console.log('✅ Product created successfully:', createdProduct.id);
     
     return NextResponse.json({
       success: true,
-      data: newProduct,
+      data: createdProduct,
       message: 'Product created successfully'
     }, { status: 201 });
   } catch (error) {
@@ -76,10 +191,11 @@ export async function POST(request: NextRequest) {
 }
 
 // PUT - Update existing product
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest, context: any) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
+    const db = getDB(context);
 
     if (!id) {
       return NextResponse.json({
@@ -88,14 +204,41 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const updatedProduct = ProductStorage.update(parseInt(id), updateData);
-    
-    if (!updatedProduct) {
+    if (!db) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not available'
+      }, { status: 503 });
+    }
+
+    const result = await db.prepare(`
+      UPDATE products 
+      SET title = ?, description = ?, image_url = ?, category = ?, brand = ?, 
+          features = ?, specifications = ?, status = ?, price = ?
+      WHERE id = ?
+    `).bind(
+      updateData.title,
+      updateData.description,
+      updateData.image_url,
+      updateData.category,
+      updateData.brand,
+      updateData.features,
+      updateData.specifications,
+      updateData.status,
+      parseInt(updateData.price),
+      id
+    ).run();
+
+    if (result.changes === 0) {
       return NextResponse.json({
         success: false,
         error: 'Product not found'
       }, { status: 404 });
     }
+
+    const updatedProduct = await db.prepare(
+      'SELECT * FROM products WHERE id = ?'
+    ).bind(id).first();
 
     return NextResponse.json({
       success: true,
@@ -112,10 +255,11 @@ export async function PUT(request: NextRequest) {
 }
 
 // DELETE - Delete product
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest, context: any) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const db = getDB(context);
 
     if (!id) {
       return NextResponse.json({
@@ -124,9 +268,18 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const success = ProductStorage.delete(parseInt(id));
+    if (!db) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not available'
+      }, { status: 503 });
+    }
+
+    const result = await db.prepare(
+      'DELETE FROM products WHERE id = ?'
+    ).bind(id).run();
     
-    if (!success) {
+    if (result.changes === 0) {
       return NextResponse.json({
         success: false,
         error: 'Product not found'
