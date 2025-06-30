@@ -1,125 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Force dynamic rendering
+// Force dynamic rendering and edge runtime
 export const dynamic = 'force-dynamic';
-// Edge runtime for Cloudflare Pages
 export const runtime = 'edge';
-import { createDatabaseService } from '@/lib/database';
 
-interface FAQ {
-  id: string;
-  question: string;
-  answer: string;
-  category: string;
-  order: number;
-  status: 'published' | 'draft';
-  createdAt: string;
-  updatedAt: string;
-}
-
-// In-memory storage (in production, use a database)
-let faqs: FAQ[] = [
+// Memory storage for FAQs
+let memoryStorage: any[] = [
   {
-    id: '1',
-    question: 'Kombi montajı ne kadar sürer?',
-    answer: 'Standart bir kombi montajı genellikle 2-4 saat arasında tamamlanır. Bu süre, montaj yerinin hazırlık durumu, boru çekimi gerekliliği ve kombi tipine göre değişiklik gösterebilir.',
-    category: 'Montaj',
+    id: 1,
+    question: 'Kombi bakımı ne sıklıkla yapılmalıdır?',
+    answer: 'Kombiler yılda en az bir kez profesyonel bakım yapılmalıdır. Bu sayede verimliliği korunur ve arıza riski azalır.',
+    category: 'bakım',
     order: 1,
-    status: 'published',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
+    status: 'active',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
-    id: '2',
-    question: 'Kombi bakımı ne sıklıkla yapılmalı?',
-    answer: 'Kombinizin verimli çalışması ve uzun ömürlü olması için yılda en az bir kez profesyonel bakım yaptırmanız önerilir. Yoğun kullanım durumunda 6 ayda bir bakım yapılabilir.',
-    category: 'Bakım',
+    id: 2,
+    question: 'Hangi kombi markası en iyisidir?',
+    answer: 'Her markanın kendine özgü avantajları vardır. Vaillant, Bosch, Buderus gibi Avrupa markaları kalite ve dayanıklılıkta öne çıkar.',
+    category: 'ürün',
     order: 2,
-    status: 'published',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: '3',
-    question: 'Hangi kombi markası daha iyi?',
-    answer: 'Vaillant, Bosch, Demirdöküm, Buderus gibi markalar kalite ve güvenilirlik açısından öne çıkar. Marka seçimi, bütçeniz, evinizin büyüklüğü ve ısıtma ihtiyacınıza göre değişir. Uzman ekibimiz size en uygun seçeneği önerebilir.',
-    category: 'Ürün Seçimi',
-    order: 3,
-    status: 'published',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: '4',
-    question: 'Kombi arızaları için garanti süresi nedir?',
-    answer: 'Yeni kombi satışlarında 2 yıl üretici garantisi, montaj işçiliğinde 1 yıl garanti sunuyoruz. Bakım ve onarım hizmetlerimizde ise 6 ay işçilik garantisi veriyoruz.',
-    category: 'Garanti',
-    order: 4,
-    status: 'published',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: '5',
-    question: 'Acil durumlarda hizmet veriyor musunuz?',
-    answer: 'Evet, 7/24 acil servis hizmeti sunuyoruz. Kombi arızaları, su kaçakları ve ısıtma sistemlerindeki acil durumlar için hızlı müdahale ekibimiz mevcuttur.',
-    category: 'Hizmet',
-    order: 5,
-    status: 'published',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
+    status: 'active',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ];
 
 export async function GET(request: NextRequest) {
   try {
-    // Get database service
-    const dbService = createDatabaseService();
-    
-    // Get query parameters
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     const status = searchParams.get('status') || 'active';
 
-    let faqData = [];
+    let allFaqs = memoryStorage.filter(f => f.status === status);
 
-    if (dbService) {
-      // Try to fetch from database
-      try {
-        faqData = await dbService.getFAQs(status);
-        console.log('✅ FAQs fetched from database:', faqData.length);
-      } catch (dbError) {
-        console.warn('Database error, using fallback data:', dbError);
-        faqData = faqs.filter(faq => faq.status === 'published');
+    if (id) {
+      const numericId = parseInt(id);
+      const faq = allFaqs.find(f => f.id === numericId);
+      
+      if (!faq) {
+        return NextResponse.json(
+          { success: false, error: 'FAQ not found' },
+          { status: 404 }
+        );
       }
-    } else {
-      // Use mock data when database is not available
-      console.log('🔧 Database not available, using mock FAQs');
-      faqData = faqs.filter(faq => faq.status === 'published');
+
+      return NextResponse.json({
+        success: true,
+        data: faq,
+        source: 'memory'
+      });
     }
 
     return NextResponse.json({
       success: true,
-      data: faqData,
-      source: dbService ? 'database' : 'mock'
+      data: allFaqs,
+      source: 'memory',
+      count: allFaqs.length
     });
 
   } catch (error: any) {
-    console.error('FAQ GET API Error:', error);
-    // Even on error, return mock data
-    return NextResponse.json({
-      success: true,
-      data: faqs.filter(faq => faq.status === 'published'),
-      source: 'fallback'
-    });
+    console.error('FAQ API Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch FAQs' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { question, answer, category, order_index, status } = body;
+    const { question, answer, category, order, status } = body;
 
-    // Validation
     if (!question || !answer) {
       return NextResponse.json(
         { error: 'Question and answer are required' },
@@ -127,46 +82,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get database service
-    const dbService = createDatabaseService();
-    
-    if (dbService) {
-      // Try to create in database
-      try {
-        const result = await dbService.createFAQ({
-          question,
-          answer,
-          category: category || 'general',
-          order_index: order_index || 0,
-          status: status || 'active'
-        });
+    const newFaq = {
+      id: Date.now(),
+      question,
+      answer,
+      category: category || 'genel',
+      order: order || 0,
+      status: status || 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to create FAQ');
-        }
+    memoryStorage.push(newFaq);
 
-        return NextResponse.json({
-          success: true,
-          message: 'FAQ created successfully',
-          id: result.id,
-          source: 'database'
-        });
-      } catch (dbError) {
-        console.warn('Database error, simulating creation:', dbError);
-      }
-    }
-
-    // Fallback: simulate creation
-    console.log('🔧 Database not available, simulating FAQ creation');
     return NextResponse.json({
       success: true,
-      message: 'FAQ creation simulated (database not available)',
-      id: Date.now(),
-      source: 'mock'
+      data: newFaq,
+      source: 'memory'
     });
 
   } catch (error: any) {
-    console.error('FAQ POST API Error:', error);
+    console.error('FAQ POST Error:', error);
     return NextResponse.json(
       { error: 'Failed to create FAQ' },
       { status: 500 }
@@ -177,46 +113,43 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, ...updateData } = body;
+    const { id, question, answer, category, order, status } = body;
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'FAQ ID is required' },
+        { error: 'FAQ ID is required' },
         { status: 400 }
       );
     }
 
-    const dbService = createDatabaseService();
-    
-    if (dbService) {
-      try {
-        const result = await dbService.updateFAQ(parseInt(id), updateData);
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to update FAQ');
-        }
-
-        return NextResponse.json({
-          success: true,
-          message: 'FAQ updated successfully',
-          source: 'database'
-        });
-      } catch (dbError) {
-        console.warn('Database error, simulating update:', dbError);
-      }
+    const faqIndex = memoryStorage.findIndex(f => f.id === parseInt(id));
+    if (faqIndex === -1) {
+      return NextResponse.json(
+        { error: 'FAQ not found' },
+        { status: 404 }
+      );
     }
 
-    // Fallback: simulate update
-    console.log('🔧 Database not available, simulating FAQ update');
+    memoryStorage[faqIndex] = {
+      ...memoryStorage[faqIndex],
+      question: question || memoryStorage[faqIndex].question,
+      answer: answer || memoryStorage[faqIndex].answer,
+      category: category || memoryStorage[faqIndex].category,
+      order: order !== undefined ? order : memoryStorage[faqIndex].order,
+      status: status || memoryStorage[faqIndex].status,
+      updated_at: new Date().toISOString()
+    };
+
     return NextResponse.json({
       success: true,
-      message: 'FAQ update simulated (database not available)',
-      source: 'mock'
+      data: memoryStorage[faqIndex],
+      source: 'memory'
     });
+
   } catch (error: any) {
-    console.error('FAQ PUT API Error:', error);
+    console.error('FAQ PUT Error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update FAQ' },
+      { error: 'Failed to update FAQ' },
       { status: 500 }
     );
   }
@@ -229,29 +162,31 @@ export async function DELETE(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'FAQ ID is required' },
+        { error: 'FAQ ID is required' },
         { status: 400 }
       );
     }
 
-    const dbService = createDatabaseService();
-    if (!dbService) {
-      throw new Error('Database not available');
+    const faqIndex = memoryStorage.findIndex(f => f.id === parseInt(id));
+    if (faqIndex === -1) {
+      return NextResponse.json(
+        { error: 'FAQ not found' },
+        { status: 404 }
+      );
     }
 
-    const result = await dbService.deleteFAQ(parseInt(id));
-
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to delete FAQ');
-    }
+    memoryStorage.splice(faqIndex, 1);
 
     return NextResponse.json({
       success: true,
-      message: 'FAQ deleted successfully'
+      message: 'FAQ deleted successfully',
+      source: 'memory'
     });
-  } catch (error) {
+
+  } catch (error: any) {
+    console.error('FAQ DELETE Error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete FAQ' },
+      { error: 'Failed to delete FAQ' },
       { status: 500 }
     );
   }
