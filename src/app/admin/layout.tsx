@@ -201,13 +201,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <DocumentTextIcon className="w-5 h-5" />,
       subItems: [
         { title: 'Hakkımızda', href: '/admin/pages/about' },
-        { title: 'Ürünler', href: '/admin/pages/products' },
         { title: 'Referanslar', href: '/admin/pages/references' },
         { title: 'İletişim', href: '/admin/pages/contact' },
         { title: 'Blog', href: '/admin/pages/blog' },
         { title: 'SSS', href: '/admin/pages/faq' },
         { title: 'Müşteri Yorumları', href: '/admin/pages/testimonials' },
       ],
+    },
+    {
+      title: 'Ürün Yönetimi',
+      icon: <CubeIcon className="w-5 h-5" />,
+      href: '/admin/products',
     },
     {
       title: 'İçerik Yönetimi',

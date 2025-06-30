@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "title": "Bosch Condens 8300iW",
+    "description": "Yoğuşmalı kombi sistemi - A sınıfı verimlilik ve akıllı kontrol",
+    "image_url": "/uploads/products/bosch/bosch-condens-8300iw.png",
+    "category": "Kombi",
+    "brand": "Bosch",
+    "features": "[\"Yoğuşmalı teknoloji\",\"A sınıfı verimlilik\",\"Akıllı kontrol\"]",
+    "specifications": "[{\"key\":\"Güç\",\"value\":\"24 kW\"},{\"key\":\"Verim\",\"value\":\"%109\"}]",
+    "status": "active",
+    "price": 15000,
+    "created_at": "2025-06-30T17:00:57.192Z"
+  },
+  {
+    "id": 2,
+    "title": "DemirDöküm Nitromix",
+    "description": "Türkiye üretimi kaliteli kombi - Uzun ömürlü ve güvenilir",
+    "image_url": "/uploads/products/demirdokum/demirdokum-nitromix-kombi.png",
+    "category": "Kombi",
+    "brand": "DemirDöküm",
+    "features": "[\"Nitro teknolojisi\",\"Türk malı\",\"+1 özellik\"]",
+    "specifications": "[{\"key\":\"Güç\",\"value\":\"20 kW\"},{\"key\":\"Üretim\",\"value\":\"Türkiye\"}]",
+    "status": "active",
+    "price": 12000,
+    "created_at": "2025-06-30T17:00:57.193Z"
+  },
+  {
+    "id": 3,
+    "title": "Vaillant EcoTec Plus",
+    "description": "Avrupa kalitesi kombi sistemi - Premium seri",
+    "image_url": "/uploads/products/vaillant/vaillant-ecotec-plus.png",
+    "category": "Kombi",
+    "brand": "Vaillant",
+    "features": "[\"Avrupa kalitesi\",\"Premium seri\",\"+1 özellik\"]",
+    "specifications": "[{\"key\":\"Güç\",\"value\":\"28 kW\"},{\"key\":\"Seri\",\"value\":\"Premium\"}]",
+    "status": "active",
+    "price": 18000,
+    "created_at": "2025-06-30T17:00:57.193Z"
+  },
+  {
+    "id": 4,
+    "title": "FILE STORAGE TEST ÜRÜNÜ 💾",
+    "description": "File-based persistent storage test ürünü",
+    "image_url": "/uploads/file-test.jpg",
+    "category": "File Test",
+    "brand": "Storage Brand",
+    "features": "[\"File Storage\", \"Persistent Data\", \"Server Restart Safe\"]",
+    "specifications": "[{\"key\":\"Storage\",\"value\":\"File-based\"},{\"key\":\"Restart\",\"value\":\"Safe\"}]",
+    "status": "active",
+    "price": 555555,
+    "created_at": "2025-06-30T17:01:09.999Z"
+  },
+  {
+    "id": 5,
+    "title": "FINAL MCP TEST ÜRÜNÜ 🚀",
+    "description": "MCP Web Evaluation Agent ile son test - otomatik detay sayfası oluşumu test",
+    "image_url": "",
+    "category": "MCP Test",
+    "brand": "Final Test",
+    "features": "[\"MCP Final Test\",\"Otomatik Detay Sayfası\",\"Dynamic Content\"]",
+    "specifications": "[]",
+    "status": "active",
+    "price": 999999,
+    "created_at": "2025-06-30T17:06:27.283Z"
+  }
+]

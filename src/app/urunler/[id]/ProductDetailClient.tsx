@@ -174,17 +174,15 @@ export default function ProductDetailClient({ productId, initialProduct, product
   }, [initialProduct, product]);
 
   useEffect(() => {
-    // Only fetch from API if we don't have initial product data
-    if (initialProduct) return;
+    // Always fetch from API to get the latest data
     const loadProductData = async () => {
       try {
         setIsLoading(true);
-        console.log('🔍 ProductDetailClient - Loading product ID:', productId);
+        console.log('🔍 ProductDetailClient - Loading product ID:', id);
         console.log('🔍 ProductDetailClient - Current URL:', window.location.href);
-        console.log('🔍 ProductDetailClient - API URL will be:', '/api/products');
         
-        // Get all products from API endpoint
-        const apiUrl = '/api/products';
+        // Use individual product API endpoint
+        const apiUrl = `/api/products/${id}`;
         console.log('🔍 Making API request to:', apiUrl);
         const response = await fetch(apiUrl);
         console.log('🔍 API response status:', response.status);
@@ -198,11 +196,8 @@ export default function ProductDetailClient({ productId, initialProduct, product
         console.log('🔍 ProductDetailClient - API response:', result);
         
         if (result.success && result.data) {
-          const allProducts = result.data;
-          console.log('🔍 ProductDetailClient - All products:', allProducts.map((p: any) => ({ id: p.id, name: p.title || p.name })));
-          
-          // Find the specific product
-          const rawProductData = allProducts.find((p: any) => p.id === parseInt(id));
+          // Individual API returns single product directly
+          const rawProductData = result.data;
           console.log('🔍 ProductDetailClient - Raw product data:', rawProductData);
           
           if (rawProductData) {
@@ -319,72 +314,17 @@ export default function ProductDetailClient({ productId, initialProduct, product
             console.log('🔍 ProductDetailClient - Transformed product:', productData);
             setProduct(productData);
             
-            // Get related products and transform them too
-            const related = allProducts
-              .filter((p: any) => p.category === rawProductData.category && p.id !== rawProductData.id)
-              .slice(0, 3)
-              .map((p: any) => ({
-                id: p.id,
-                name: p.title || p.name || 'Ürün',
-                title: p.title,
-                description: p.description || '',
-                image: (() => {
-                  // Prioritize all_images field for multiple images support
-                  try {
-                    if (p.all_images) {
-                      const allImages = typeof p.all_images === 'string' 
-                        ? JSON.parse(p.all_images)
-                        : p.all_images;
-                      if (Array.isArray(allImages) && allImages.length > 0) {
-                        return allImages[0]; // Use first image as main image
-                      }
-                    }
-                  } catch (error) {
-                    console.warn('Error parsing related product all_images:', error);
-                  }
-                  // Fallback to original image fields
-                  return p.image_url || p.image || '/images/products/placeholder.jpg';
-                })(),
-                image_url: p.image_url,
-                category: p.category || 'Genel',
-                brand: p.brand || 'Marka',
-                features: p.features ? 
-                  (typeof p.features === 'string' ? 
-                    (p.features === '[]' ? [] : JSON.parse(p.features)) : 
-                    p.features) : 
-                  [],
-                specifications: (() => {
-                  try {
-                    if (!p.specifications) return {};
-                    if (typeof p.specifications === 'string') {
-                      if (p.specifications === '{}' || p.specifications === '') return {};
-                      const parsed = JSON.parse(p.specifications);
-                      return typeof parsed === 'object' && parsed !== null ? parsed : {};
-                    }
-                    if (typeof p.specifications === 'object' && p.specifications !== null) {
-                      return p.specifications;
-                    }
-                    return {};
-                  } catch (error) {
-                    console.warn('🚨 Error parsing related product specifications:', error);
-                    return {};
-                  }
-                })(),
-                isActive: p.status === 'active',
-                status: p.status,
-                featured: p.featured || false,
-                price: p.price || 0
-              }));
-            setRelatedProducts(related);
+            // Set empty related products for now (would need separate API call)
+            setRelatedProducts([]);
           } else {
-            console.error('❌ Product not found for ID:', productId);
+            console.error('❌ Product not found for ID:', id);
           }
         } else {
           console.error('❌ API response indicates failure:', result);
         }
       } catch (error) {
         console.error('❌ Error loading product:', error);
-        console.error('❌ Product ID that failed:', productId);
+        console.error('❌ Product ID that failed:', id);
         // Set a fallback product to prevent infinite loading
         const fallbackProduct: Product = {
           id: parseInt(id),
@@ -407,7 +347,7 @@ export default function ProductDetailClient({ productId, initialProduct, product
     };
 
     loadProductData();
-  }, [productId]);
+  }, [id]);
 
   // WhatsApp redirect function
   const handleWhatsAppRedirect = (productName: string) => {
