@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createDatabaseService } from '@/lib/database';
+import { DatabaseService } from '@/lib/database';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -10,26 +10,86 @@ export const runtime = 'edge';
 // Memory storage for development persistence (no file system in Edge runtime)
 let memoryStorage: any[] = [];
 
+// Get D1 database from Cloudflare runtime
+function getD1Database(request: NextRequest): any {
+  // Try different binding access patterns for Cloudflare Pages
+  
+  // Pattern 1: Direct process.env access (most common)
+  if (typeof process !== 'undefined' && process.env) {
+    const binding = (process.env as any).ozmevsim_d1;
+    if (binding) {
+      console.log('🎯 Found binding in process.env.ozmevsim_d1');
+      return binding;
+    }
+  }
+  
+  // Pattern 2: globalThis access
+  if (typeof globalThis !== 'undefined') {
+    const binding1 = (globalThis as any).ozmevsim_d1;
+    const binding2 = (globalThis as any).DB;
+    if (binding1) {
+      console.log('🎯 Found binding in globalThis.ozmevsim_d1');
+      return binding1;
+    }
+    if (binding2) {
+      console.log('🎯 Found binding in globalThis.DB');
+      return binding2;
+    }
+  }
+  
+  // Pattern 3: Check for cloudflare runtime
+  if (typeof window === 'undefined' && typeof global !== 'undefined') {
+    const binding = (global as any).ozmevsim_d1;
+    if (binding) {
+      console.log('🎯 Found binding in global.ozmevsim_d1');
+      return binding;
+    }
+  }
+  
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 API /products called');
+    
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const status = searchParams.get('status') || 'active';
 
-    // Get database service
-    const dbService = createDatabaseService();
+    // Try different binding access methods for Cloudflare Pages
+    let db = null;
+    
+    // Method 1: Direct process.env
+    if (typeof process !== 'undefined' && process.env) {
+      console.log('🔍 Checking process.env...');
+      db = (process.env as any).ozmevsim_d1;
+      if (db) console.log('🎯 Found DB in process.env.ozmevsim_d1');
+    }
+    
+    // Method 2: globalThis
+    if (!db && typeof globalThis !== 'undefined') {
+      console.log('🔍 Checking globalThis...');
+      db = (globalThis as any).ozmevsim_d1 || (globalThis as any).DB;
+      if (db) console.log('🎯 Found DB in globalThis');
+    }
+    
+    console.log('🔍 Final DB status:', db ? 'FOUND' : 'NULL - using memory');
+    
     let allProducts: any[] = [];
     let source = 'unknown';
     
-    if (dbService) {
+    if (db) {
       try {
+        // Create database service with D1 instance
+        const dbService = new DatabaseService(db);
         // Try to get from database first
         allProducts = await dbService.getProducts(status);
         source = 'database';
-        console.log('✅ Products loaded from database:', allProducts.length);
+        console.log('✅ Products loaded from D1 database:', allProducts.length);
       } catch (dbError) {
-        console.log('⚠️ Database fetch failed:', dbError);
+        console.log('⚠️ D1 Database fetch failed:', dbError);
         allProducts = memoryStorage.filter(p => p.status === status);
         source = 'memory';
       }
@@ -53,8 +113,9 @@ export async function GET(request: NextRequest) {
       
       if (!isNaN(numericId)) {
         // Try database first
-        if (dbService) {
+        if (db) {
           try {
+            const dbService = new DatabaseService(db);
             product = await dbService.getProduct(numericId);
           } catch (dbError) {
             console.log('Database single product fetch failed:', dbError);
@@ -64,7 +125,7 @@ export async function GET(request: NextRequest) {
         // If not found in database, check memory
         if (!product) {
           console.log('🔍 Searching in memory for ID:', id, 'numericId:', numericId);
-          console.log('�� Memory products:', memoryStorage.map(p => ({ id: p.id, title: p.title })));
+          console.log('🔍 Memory products:', memoryStorage.map(p => ({ id: p.id, title: p.title })));
           product = memoryStorage.find(p => p.id === numericId || p.id.toString() === id);
           console.log('🔍 Found product:', product ? product.title : 'NOT FOUND');
         }
@@ -178,8 +239,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get database service
-    const dbService = createDatabaseService();
+    // Get D1 database from runtime
+    let db = getD1Database(request);
     
     const newProduct = {
       id: Date.now(), // Simple ID generation
@@ -198,31 +259,30 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString()
     };
 
-    let savedToDatabase = false;
-
-    if (dbService) {
-      // Try to save to database
+    if (db) {
       try {
+        const dbService = new DatabaseService(db);
         const result = await dbService.createProduct(newProduct);
-        if (result.success && result.id) {
-          console.log('✅ Product saved to database:', result.id);
-          newProduct.id = result.id;
-          savedToDatabase = true;
+        if (result.success) {
+          console.log('✅ Product added to D1 database');
+          return NextResponse.json({ success: true, data: { ...newProduct, id: result.id } });
+        } else {
+          console.log('❌ D1 database insert failed:', result.error);
+          // Fall back to memory storage
         }
       } catch (dbError) {
-        console.log('⚠️ Database save failed, using memory storage:', dbError);
+        console.log('❌ D1 database error:', dbError);
+        // Fall back to memory storage
       }
     }
-    
-    // Always add to memory storage for immediate access
+
+    // Memory storage fallback
     memoryStorage.push(newProduct);
     console.log('✅ Product added to memory storage. Total products:', memoryStorage.length);
 
     return NextResponse.json({
       success: true,
-      message: 'Product created successfully',
-      id: newProduct.id,
-      source: savedToDatabase ? 'database+memory' : 'memory'
+      data: newProduct
     });
 
   } catch (error: any) {
@@ -254,8 +314,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Get database service
-    const dbService = createDatabaseService();
+    // Get D1 database from runtime
+    let db = getD1Database(request);
 
     const updatedProduct = {
       title,
@@ -273,8 +333,9 @@ export async function PUT(request: NextRequest) {
 
     let updatedInDatabase = false;
 
-    if (dbService) {
+    if (db) {
       try {
+        const dbService = new DatabaseService(db);
         const result = await dbService.updateProduct(parseInt(id), updatedProduct);
         if (result.success) {
           console.log('✅ Product updated in database:', id);
@@ -324,13 +385,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Get database service
-    const dbService = createDatabaseService();
+    // Get D1 database from runtime
+    let db = getD1Database(request);
 
     let deletedFromDatabase = false;
 
-    if (dbService) {
+    if (db) {
       try {
+        const dbService = new DatabaseService(db);
         const result = await dbService.deleteProduct(parseInt(id));
         if (result.success) {
           console.log('✅ Product deleted from database:', id);
