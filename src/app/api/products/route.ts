@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge'; // Re-enable edge runtime for D1 compatibility
 
+// Define interface for our Cloudflare environment
+interface CloudflareEnv {
+  ozmevsim_d1: D1Database;
+  [key: string]: any;
+}
+
 // D1 Database helper functions
-function getDB(env: any) {
-  if (env?.ozmevsim_d1) {
-    return env.ozmevsim_d1;
+function getDB(): D1Database | null {
+  try {
+    const { env } = getRequestContext<CloudflareEnv>();
+    if (env?.ozmevsim_d1) {
+      return env.ozmevsim_d1;
+    }
+  } catch (error) {
+    console.log('⚠️ getRequestContext() not available, using fallback data');
   }
   
   // Fallback to in-memory products for development
@@ -62,11 +74,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    
-    // Access environment variables from the request's context
-    // @ts-ignore - Cloudflare Pages specific binding
-    const env = request.cf?.env || process.env;
-    const db = getDB(env);
+    const db = getDB();
 
     if (!db) {
       // Use fallback data when D1 not available
@@ -133,11 +141,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Access environment variables from the request's context
-    // @ts-ignore - Cloudflare Pages specific binding
-    const env = request.cf?.env || process.env;
-    const db = getDB(env);
+    const db = getDB();
     
     console.log('📝 Creating new product:', body.title);
 
@@ -203,11 +207,7 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
-    
-    // Access environment variables from the request's context
-    // @ts-ignore - Cloudflare Pages specific binding
-    const env = request.cf?.env || process.env;
-    const db = getDB(env);
+    const db = getDB();
 
     if (!id) {
       return NextResponse.json({
@@ -271,11 +271,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    
-    // Access environment variables from the request's context
-    // @ts-ignore - Cloudflare Pages specific binding
-    const env = request.cf?.env || process.env;
-    const db = getDB(env);
+    const db = getDB();
 
     if (!id) {
       return NextResponse.json({

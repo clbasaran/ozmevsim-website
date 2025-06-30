@@ -85,7 +85,7 @@ export default function AdminMediaPage() {
       const apiUrl = isDev ? '/api/upload-r2' : '/api/upload-r2';
       
       const response = await fetch(`${apiUrl}?folder=${currentFolder}`);
-      const data = await response.json();
+      const data = await response.json() as { success: boolean; data?: MediaFile[]; error?: string };
       
       if (data.success) {
         setFiles(data.data || []);

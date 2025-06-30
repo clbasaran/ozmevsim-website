@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
           });
 
           if (response.ok) {
-            const result = await response.json();
+            const result = await response.json() as { success: boolean; authenticated: boolean };
             if (result.success && result.authenticated) {
               router.push('/admin');
               return;
@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ password }),
       });
 
-      const result = await response.json();
+      const result = await response.json() as { success: boolean; token?: string; error?: string };
 
       if (result.success && result.token) {
         // Store token securely in both localStorage and cookie

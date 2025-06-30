@@ -37,7 +37,7 @@ export default function BackupPage() {
         fetch('/api/testimonials').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] })),
         fetch('/api/contact').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] })),
         fetch('/api/products').then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] }))
-      ]);
+      ]) as Array<{ data: any[] }>;
 
       const exportData = {
         exportDate: new Date().toISOString(),

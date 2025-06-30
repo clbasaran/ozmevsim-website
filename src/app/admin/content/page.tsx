@@ -146,7 +146,7 @@ const ContentManagement = () => {
         body: JSON.stringify(editingItem ? { id: editingItem.id, ...formData } : formData),
       });
       
-      const result = await response.json();
+      const result = await response.json() as { success: boolean; error?: string };
       
       if (result.success) {
         alert(editingItem ? 'İçerik güncellendi!' : 'İçerik oluşturuldu!');

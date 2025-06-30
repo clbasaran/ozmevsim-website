@@ -104,7 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         });
 
         if (response.ok) {
-          const result = await response.json();
+          const result = await response.json() as { authenticated: boolean };
           if (result.authenticated) {
             console.log('✅ Authentication verified');
             setIsAuthenticated(true);

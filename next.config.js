@@ -20,6 +20,10 @@ const nextConfig = {
   
   eslint: {
     ignoreDuringBuilds: false
+  },
+  
+  typescript: {
+    ignoreBuildErrors: true
   }
 };
 

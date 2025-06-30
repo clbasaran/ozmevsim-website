@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge'; // Re-enable edge runtime for D1 compatibility
 
 // D1 Database helper functions
-function getDB(env: any) {
-  if (env?.ozmevsim_d1) {
-    return env.ozmevsim_d1;
+function getDB() {
+  try {
+    const { env } = getRequestContext();
+    if (env?.ozmevsim_d1) {
+      return env.ozmevsim_d1;
+    }
+  } catch (error) {
+    console.log('⚠️ getRequestContext() not available, using fallback data');
   }
   
   // Fallback to in-memory products for development
@@ -64,11 +70,7 @@ export async function GET(
 ) {
   try {
     const id = parseInt(params.id);
-    
-    // Access environment variables from the request's context
-    // @ts-ignore - Cloudflare Pages specific binding
-    const env = request.cf?.env || process.env;
-    const db = getDB(env);
+    const db = getDB();
     
     if (isNaN(id)) {
       return NextResponse.json({
@@ -132,11 +134,7 @@ export async function PUT(
 ) {
   try {
     const id = parseInt(params.id);
-    
-    // Access environment variables from the request's context
-    // @ts-ignore - Cloudflare Pages specific binding
-    const env = request.cf?.env || process.env;
-    const db = getDB(env);
+    const db = getDB();
     
     if (isNaN(id)) {
       return NextResponse.json({
@@ -205,11 +203,7 @@ export async function DELETE(
 ) {
   try {
     const id = parseInt(params.id);
-    
-    // Access environment variables from the request's context
-    // @ts-ignore - Cloudflare Pages specific binding
-    const env = request.cf?.env || process.env;
-    const db = getDB(env);
+    const db = getDB();
     
     if (isNaN(id)) {
       return NextResponse.json({
