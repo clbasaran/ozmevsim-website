@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 // Edge runtime for Cloudflare Pages
 export const runtime = 'edge';
-import { createDatabaseService } from '@/lib/database';
 
 interface BlogPost {
   id: string;
@@ -70,43 +69,39 @@ const mockBlogPosts: BlogPost[] = [
 
 export async function GET(request: NextRequest) {
   try {
-    // Get database service
-    const dbService = createDatabaseService();
-    
-    // Get query parameters
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'published';
 
-    let posts = [];
+    // Edge runtime için database access
+    const env = (globalThis as any).process?.env;
+    let posts = mockBlogPosts.filter(post => post.status === status);
 
-    if (dbService) {
-      // Try to fetch from database
+    // D1 database varsa kullan
+    if (env?.ozmevsim_d1) {
       try {
-        posts = await dbService.getBlogPosts(status);
-        console.log('✅ Blog posts fetched from database:', posts.length);
+        const { results } = await env.ozmevsim_d1.prepare(`
+          SELECT * FROM blog_posts WHERE status = ? ORDER BY created_at DESC
+        `).bind(status).all();
+        
+        if (results && results.length > 0) {
+          posts = results;
+        }
       } catch (dbError) {
-        console.warn('Database error, using fallback data:', dbError);
-        posts = mockBlogPosts.filter(post => post.status === status);
+        console.warn('Database error, using mock data:', dbError);
       }
-    } else {
-      // Use mock data when database is not available
-      console.log('🔧 Database not available, using mock blog posts');
-      posts = mockBlogPosts.filter(post => post.status === status);
     }
 
     return NextResponse.json({
       success: true,
       data: posts,
-      source: dbService ? 'database' : 'mock'
+      source: env?.ozmevsim_d1 ? 'database' : 'mock'
     });
 
   } catch (error: any) {
     console.error('Blog GET API Error:', error);
-    // Even on error, return mock data
-    const status = new URL(request.url).searchParams.get('status') || 'published';
     return NextResponse.json({
       success: true,
-      data: mockBlogPosts.filter(post => post.status === status),
+      data: mockBlogPosts.filter(post => post.status === 'published'),
       source: 'fallback'
     });
   }
@@ -117,7 +112,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, content, excerpt, featured_image, author, status, tags } = body;
 
-    // Validation
     if (!title || !content) {
       return NextResponse.json(
         { error: 'Title and content are required' },
@@ -125,42 +119,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get database service
-    const dbService = createDatabaseService();
+    const env = (globalThis as any).process?.env;
     
-    if (dbService) {
-      // Try to create in database
+    if (env?.ozmevsim_d1) {
       try {
-        const result = await dbService.createBlogPost({
+        const result = await env.ozmevsim_d1.prepare(`
+          INSERT INTO blog_posts (title, content, excerpt, featured_image, author, status, tags, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
           title,
           content,
-          excerpt: excerpt || content.substring(0, 150) + '...',
-          featured_image: featured_image || '',
-          author: author || 'Admin',
-          status: status || 'published',
-          tags: tags || []
-        });
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to create blog post');
-        }
+          excerpt || content.substring(0, 150) + '...',
+          featured_image || '',
+          author || 'Admin',
+          status || 'published',
+          JSON.stringify(tags || []),
+          new Date().toISOString(),
+          new Date().toISOString()
+        ).run();
 
         return NextResponse.json({
           success: true,
           message: 'Blog post created successfully',
-          id: result.id,
+          id: result.meta.last_row_id,
           source: 'database'
         });
       } catch (dbError) {
-        console.warn('Database error, simulating creation:', dbError);
+        console.warn('Database error:', dbError);
       }
     }
 
-    // Fallback: simulate creation
-    console.log('🔧 Database not available, simulating blog post creation');
     return NextResponse.json({
       success: true,
-      message: 'Blog post creation simulated (database not available)',
+      message: 'Blog post creation simulated',
       id: Date.now(),
       source: 'mock'
     });
@@ -179,15 +170,23 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, ...updateData } = body;
 
-    const dbService = createDatabaseService();
+    const env = (globalThis as any).process?.env;
     
-    if (dbService) {
+    if (env?.ozmevsim_d1) {
       try {
-        const result = await dbService.updateBlogPost(parseInt(id), updateData);
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to update blog post');
-        }
+        const result = await env.ozmevsim_d1.prepare(`
+          UPDATE blog_posts 
+          SET title = ?, content = ?, excerpt = ?, author = ?, status = ?, updated_at = ?
+          WHERE id = ?
+        `).bind(
+          updateData.title,
+          updateData.content,
+          updateData.excerpt,
+          updateData.author,
+          updateData.status,
+          new Date().toISOString(),
+          parseInt(id)
+        ).run();
 
         return NextResponse.json({
           success: true,
@@ -195,15 +194,13 @@ export async function PUT(request: NextRequest) {
           source: 'database'
         });
       } catch (dbError) {
-        console.warn('Database error, simulating update:', dbError);
+        console.warn('Database error:', dbError);
       }
     }
 
-    // Fallback: simulate update
-    console.log('🔧 Database not available, simulating blog post update');
     return NextResponse.json({
       success: true,
-      message: 'Blog post update simulated (database not available)',
+      message: 'Blog post update simulated',
       source: 'mock'
     });
   } catch (error: any) {
@@ -227,15 +224,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const dbService = createDatabaseService();
+    const env = (globalThis as any).process?.env;
     
-    if (dbService) {
+    if (env?.ozmevsim_d1) {
       try {
-        const result = await dbService.deleteBlogPost(parseInt(id));
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to delete blog post');
-        }
+        const result = await env.ozmevsim_d1.prepare(`
+          DELETE FROM blog_posts WHERE id = ?
+        `).bind(parseInt(id)).run();
 
         return NextResponse.json({
           success: true,
@@ -243,15 +238,13 @@ export async function DELETE(request: NextRequest) {
           source: 'database'
         });
       } catch (dbError) {
-        console.warn('Database error, simulating deletion:', dbError);
+        console.warn('Database error:', dbError);
       }
     }
 
-    // Fallback: simulate deletion
-    console.log('🔧 Database not available, simulating blog post deletion');
     return NextResponse.json({
       success: true,
-      message: 'Blog post deletion simulated (database not available)',
+      message: 'Blog post deletion simulated',
       source: 'mock'
     });
   } catch (error: any) {
