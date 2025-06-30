@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1751216386583,
+    "title": "Kalıcı Test Kombi",
+    "description": "File persistence ile kalıcı olan kombi sistemi",
+    "price": 40000,
+    "image_url": "/uploads/placeholder.jpg",
+    "all_images": "[]",
+    "category": "Kombi",
+    "brand": "Persistent",
+    "model": "PERSIST-001",
+    "features": "[\"File persistence\",\"Server restart survivor\",\"Kalıcı storage\"]",
+    "specifications": "{\"güç\":\"40 kW\",\"marka\":\"Persistent\",\"özellik\":\"Kalıcı\"}",
+    "status": "active",
+    "created_at": "2025-06-29T16:59:46.583Z",
+    "updated_at": "2025-06-29T16:59:46.583Z"
+  }
+]

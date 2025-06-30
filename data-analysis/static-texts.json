@@ -1,0 +1,243 @@
+{
+  "menu_labels": {
+    "main_navigation": [
+      "Ana Sayfa",
+      "Hakkımızda", 
+      "Hizmetler",
+      "Ürünler",
+      "Projeler",
+      "Referanslar",
+      "Blog",
+      "S.S.S",
+      "İletişim"
+    ],
+    "admin_navigation": [
+      "Dashboard",
+      "Sayfa Yönetimi",
+      "İçerik Yönetimi", 
+      "Medya Kütüphanesi",
+      "Site Ayarları",
+      "Raporlar",
+      "Yedekleme"
+    ],
+    "admin_submenus": {
+      "page_management": [
+        "Hakkımızda",
+        "Ürünler", 
+        "Referanslar",
+        "İletişim",
+        "Blog",
+        "SSS",
+        "Müşteri Yorumları"
+      ],
+      "content_management": [
+        "Ana Sayfa",
+        "Hizmetler",
+        "Katalog",
+        "Tüm İçerikler"
+      ],
+      "settings": [
+        "Genel Ayarlar",
+        "SEO Ayarları"
+      ]
+    }
+  },
+  "hero_texts": {
+    "titles": [
+      "Ankara'nın En Güvenilir",
+      "Profesyonel Kombi",
+      "Öz Mevsim Isı Sistemleri",
+      "Akıllı İklimlendirme",
+      "Enerji Verimliliği",
+      "İş Ortaklarımız",
+      "Çevre Dostu Çözümler"
+    ],
+    "subtitles": [
+      "Kombi ve Klima Servisi",
+      "Montaj ve Servis Hizmeti",
+      "Mühendislik Çözümleri",
+      "IoT Teknolojisi ile",
+      "Sürdürülebilir Gelecek",
+      "Güvenilir Markalar"
+    ],
+    "descriptions": [
+      "25 yıllık deneyimle ev ve işyerlerinizde konfor yaratıyor, enerji tasarrufu sağlıyoruz. 7/24 servis hizmeti.",
+      "Uzman ekibimizle en kaliteli markaların montajını yapıyor, düzenli bakım hizmeti sunuyoruz.",
+      "25 yıllık deneyimle Ankara'da kombi, klima ve doğalgaz sistemleri kurulum hizmetleri.",
+      "Cihazlarınızı uzaktan kontrol edin, enerji tasarrufu sağlayın ve konforunuzu artırın.",
+      "Çevre dostu çözümlerle %40'a varan tasarruf ve sürdürülebilir enerji sistemleri.",
+      "Dünya lideri markaların yetkili bayisi olarak kaliteli ürünler ve güvenilir hizmet sunuyoruz.",
+      "Yenilenebilir enerji sistemleri ve çevre dostu teknolojilerle doğayı koruyoruz."
+    ],
+    "cta_buttons": [
+      "Ücretsiz Keşif",
+      "Ürünlerimiz", 
+      "Teklif Al",
+      "Markalar",
+      "İletişim",
+      "Online Randevu",
+      "Keşfet",
+      "Demo İzle",
+      "Danışmanlık Al",
+      "Projeler",
+      "Ürünleri İncele",
+      "Fiyat Al",
+      "Yeşil Teknolojiler",
+      "Çevre Danışmanlığı",
+      "Hemen Ara",
+      "Hemen Randevu Al"
+    ]
+  },
+  "service_texts": {
+    "titles": [
+      "Kombi Montajı",
+      "Kombi Servisi", 
+      "Klima Montajı",
+      "Kombi Kurulumu",
+      "Doğalgaz Tesisatı"
+    ],
+    "descriptions": [
+      "Profesyonel ekibimizle tüm marka kombilerin montajını gerçekleştiriyoruz.",
+      "7/24 kombi arıza servisi ile acil durumlarınızda yanınızdayız.",
+      "Split, multi split ve VRF klima sistemlerinin profesyonel montajı.",
+      "Profesyonel kombi kurulum ve bakım hizmetleri",
+      "Güvenli doğalgaz tesisatı kurulum ve onarım"
+    ],
+    "features": [
+      "Uzman Montaj",
+      "2 Yıl Garanti", 
+      "Ücretsiz Keşif",
+      "7/24 Servis",
+      "Hızlı Müdahale",
+      "Orijinal Yedek Parça",
+      "Tüm Markalar",
+      "Profesyonel Montaj",
+      "Garanti",
+      "Garanti Kapsamında",
+      "24/7 Destek",
+      "Hızlı Montaj",
+      "Temizlik Dahil",
+      "TSE Sertifikalı",
+      "Güvenlik Testi",
+      "Resmi Belge"
+    ]
+  },
+  "form_texts": {
+    "labels": [
+      "İsim",
+      "E-posta", 
+      "Telefon",
+      "Hizmet",
+      "Mesaj",
+      "Öncelik",
+      "Konu"
+    ],
+    "placeholders": [
+      "Adınızı girin",
+      "ornek@email.com",
+      "+90 5XX XXX XX XX",
+      "Hizmet seçin",
+      "Mesajınızı yazın"
+    ],
+    "buttons": [
+      "Gönder",
+      "Kaydet",
+      "İptal",
+      "Düzenle",
+      "Sil",
+      "Ekle",
+      "Yenile"
+    ]
+  },
+  "status_messages": {
+    "success": [
+      "İşlem başarılı!",
+      "Mesajınız gönderildi!",
+      "Kayıt başarılı!",
+      "Güncelleme tamamlandı!",
+      "Silme işlemi başarılı!"
+    ],
+    "error": [
+      "Bir hata oluştu!",
+      "Lütfen tüm alanları doldurun",
+      "Geçersiz e-posta adresi",
+      "Bağlantı hatası",
+      "İşlem başarısız"
+    ],
+    "loading": [
+      "Yükleniyor...",
+      "Gönderiliyor...",
+      "İşleniyor...",
+      "Kaydediliyor...",
+      "Siliniyor..."
+    ],
+    "info": [
+      "Bilgi güncellendi",
+      "Değişiklikler kaydedildi",
+      "Yeni öğe eklendi"
+    ]
+  },
+  "footer_texts": {
+    "sections": [
+      "Hızlı Linkler",
+      "Yasal",
+      "Sosyal Medya",
+      "İletişim"
+    ],
+    "links": [
+      "Gizlilik Politikası",
+      "Kullanım Şartları", 
+      "Çerez Politikası",
+      "KVKK"
+    ],
+    "contact_labels": [
+      "Adres:",
+      "Telefon:",
+      "E-posta:",
+      "Çalışma Saatleri:"
+    ],
+    "copyright": "Tüm hakları saklıdır."
+  },
+  "admin_texts": {
+    "dashboard_labels": [
+      "Dashboard",
+      "Müşteriler",
+      "Siparişler", 
+      "Analitik",
+      "Randevular",
+      "Bildirimler",
+      "Raporlar",
+      "Ayarlar"
+    ],
+    "form_labels": [
+      "Başlık",
+      "Alt Başlık",
+      "Açıklama",
+      "Resim",
+      "Durum",
+      "Sıralama",
+      "Aktif",
+      "Pasif"
+    ],
+    "action_buttons": [
+      "Yeni Ekle",
+      "Düzenle",
+      "Sil",
+      "Kaydet",
+      "İptal",
+      "Önizle",
+      "Yayınla",
+      "Taslak",
+      "Kopyala"
+    ]
+  },
+  "error_boundary_texts": {
+    "title": "Bir şeyler ters gitti",
+    "description": "Üzgünüz, beklenmeyen bir hata oluştu. Lütfen sayfayı yenilemeyi deneyin.",
+    "buttons": [
+      "Tekrar Dene",
+      "Sayfayı Yenile"
+    ],
+    "dev_mode_label": "Hata Detayları (Geliştirme Modu):"
+  }
+} 

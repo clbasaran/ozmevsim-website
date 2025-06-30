@@ -1,0 +1,13 @@
+# Redirect www to non-www
+https://www.ozmevsim.com/* https://ozmevsim.com/:splat 301!
+
+# Redirect old URLs to new structure
+/home /
+/anasayfa /
+/products /urunler
+/services /hizmetler
+/about /hakkimizda
+/contact /iletisim
+
+# SPA fallback for client-side routing
+/* /index.html 200 

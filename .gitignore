@@ -1,0 +1,72 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+dist
+.vercel/
+
+# Misc
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# Wrangler
+.wrangler/
+.dev.vars
+wrangler.toml.bak
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs
+*.log
+.wrangler
+
+# Mac
+.DS_Store
+
+# IDE
+.vscode
+.idea
+
+# Backup files
+*.tar.gz
+*.zip
+*.bak
+*_backup.*
+
+# Test files
+*test*
+*_test_*
+
+# Cloudflare
+functions/
+.vercel/ 

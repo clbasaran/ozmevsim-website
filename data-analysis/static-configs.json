@@ -1,0 +1,214 @@
+{
+  "app_config": {
+    "name": "Öz Mevsim",
+    "version": "2.0.0",
+    "description": "Öz Mevsim Isı Sistemleri Mühendislik - Enterprise Web Sitesi",
+    "api": {
+      "baseURL": "/api",
+      "timeout": 30000
+    },
+    "auth": {
+      "tokenKey": "ozmevsim_token",
+      "refreshTokenKey": "ozmevsim_refresh_token",
+      "tokenExpiry": 3600000,
+      "adminPath": "/admin",
+      "loginPath": "/admin/login"
+    },
+    "pagination": {
+      "defaultPageSize": 20,
+      "pageSizeOptions": [10, 20, 50, 100]
+    },
+    "upload": {
+      "maxFileSize": 10485760,
+      "allowedTypes": ["image/jpeg", "image/png", "image/gif", "application/pdf"],
+      "allowedImageTypes": ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    },
+    "features": {
+      "enableBlog": true,
+      "enableChat": true,
+      "enableAnalytics": true,
+      "enable3DViewer": true,
+      "enableIoTDashboard": true
+    }
+  },
+  "seo_config": {
+    "defaultTitle": "Öz Mevsim Isı Sistemleri Mühendislik",
+    "defaultDescription": "Profesyonel ısı sistemleri, iklimlendirme ve enerji çözümleri",
+    "defaultKeywords": "ısı sistemleri, iklimlendirme, enerji, mühendislik, istanbul",
+    "defaultImage": "/images/og-image.jpg",
+    "siteName": "Öz Mevsim Isı Sistemleri",
+    "siteUrl": "https://ozmevsim.com",
+    "titleTemplate": "%s | Öz Mevsim",
+    "language": "tr-TR",
+    "robots": "index, follow",
+    "openGraph": {
+      "title": "Öz Mevsim - Isı Sistemleri Mühendislik",
+      "description": "25 yıllık deneyimle Ankara'da kombi, klima, doğalgaz sistemleri kurulum hizmetleri.",
+      "image": "/og-image.jpg",
+      "imageAlt": "Öz Mevsim Isı Sistemleri",
+      "siteName": "Öz Mevsim",
+      "type": "website",
+      "locale": "tr_TR"
+    },
+    "twitter": {
+      "card": "summary_large_image",
+      "site": "@ozmevsim",
+      "creator": "@ozmevsim",
+      "title": "Öz Mevsim - Isı Sistemleri Mühendislik",
+      "description": "25 yıllık deneyimle Ankara'da kombi, klima, doğalgaz sistemleri kurulum hizmetleri.",
+      "image": "/twitter-image.jpg"
+    }
+  },
+  "database_config": {
+    "storage_keys": {
+      "HERO_SLIDES": "ozmevsim_hero_slides",
+      "SERVICES": "ozmevsim_services",
+      "PRODUCTS": "ozmevsim_products",
+      "REFERENCES": "ozmevsim_references",
+      "TEAM_MEMBERS": "team-members",
+      "HOME_STATS": "homeStats",
+      "HOME_TESTIMONIALS": "homeTestimonials",
+      "CONTACT_MESSAGES": "contactMessages",
+      "CONTACT_INFO": "ozmevsim_contact_info",
+      "LOCATIONS": "ozmevsim_locations",
+      "FAQS": "ozmevsim_faqs"
+    }
+  },
+  "routes_config": {
+    "public_routes": {
+      "HOME": "/",
+      "ABOUT": "/hakkimizda",
+      "SERVICES": "/hizmetler",
+      "IOT_SERVICE": "/hizmetler/iot",
+      "PRODUCTS": "/urunler",
+      "PROJECTS": "/projeler",
+      "REFERENCES": "/referanslar",
+      "BLOG": "/blog",
+      "FAQ": "/sss",
+      "CONTACT": "/iletisim",
+      "CATALOG": "/katalog",
+      "APPOINTMENT": "/randevu"
+    },
+    "admin_routes": {
+      "ADMIN_ROOT": "/admin",
+      "ADMIN_LOGIN": "/admin/login",
+      "ADMIN_DASHBOARD": "/admin",
+      "ADMIN_PAGES": "/admin/pages",
+      "ADMIN_CONTENT": "/admin/content",
+      "ADMIN_MEDIA": "/admin/media",
+      "ADMIN_SETTINGS": "/admin/settings",
+      "ADMIN_REPORTS": "/admin/reports",
+      "ADMIN_BACKUP": "/admin/backup"
+    },
+    "legal_routes": {
+      "PRIVACY": "/gizlilik",
+      "TERMS": "/kullanim-sartlari",
+      "COOKIES": "/cerez-politikasi",
+      "KVKK": "/kvkk"
+    },
+    "api_routes": {
+      "HERO_SLIDES": "/api/hero-slides",
+      "SERVICES": "/api/services",
+      "PRODUCTS": "/api/products",
+      "REFERENCES": "/api/references",
+      "CONTACT": "/api/contact",
+      "BLOG": "/api/blog",
+      "FAQ": "/api/faq",
+      "TEAM": "/api/team",
+      "TESTIMONIALS": "/api/testimonials",
+      "SETTINGS": "/api/settings",
+      "UPLOAD": "/api/upload",
+      "UPLOAD_R2": "/api/upload-r2",
+      "MEDIA": "/api/media",
+      "ADMIN_AUTH": "/api/admin-auth",
+      "ADMIN_SYNC": "/api/admin-sync"
+    }
+  },
+  "theme_config": {
+    "colors": {
+      "primary": {
+        "50": "#fff7ed",
+        "100": "#ffedd5",
+        "200": "#fed7aa",
+        "300": "#fdba74",
+        "400": "#fb923c",
+        "500": "#f97316",
+        "600": "#ea580c",
+        "700": "#c2410c",
+        "800": "#9a3412",
+        "900": "#7c2d12"
+      },
+      "gold": "#d4af37",
+      "gray": {
+        "50": "#f9fafb",
+        "100": "#f3f4f6",
+        "200": "#e5e7eb",
+        "300": "#d1d5db",
+        "400": "#9ca3af",
+        "500": "#6b7280",
+        "600": "#4b5563",
+        "700": "#374151",
+        "800": "#1f2937",
+        "900": "#111827"
+      }
+    },
+    "breakpoints": {
+      "sm": "640px",
+      "md": "768px", 
+      "lg": "1024px",
+      "xl": "1280px",
+      "2xl": "1536px"
+    },
+    "z_index": {
+      "dropdown": 1000,
+      "sticky": 1020,
+      "fixed": 1030,
+      "modal_backdrop": 1040,
+      "modal": 1050,
+      "popover": 1060,
+      "tooltip": 1070,
+      "toast": 1080
+    },
+    "animation": {
+      "durations": {
+        "fast": 150,
+        "normal": 300,
+        "slow": 500
+      }
+    }
+  },
+  "api_config": {
+    "endpoints": {
+      "HERO_SLIDES": "/api/hero-slides",
+      "SERVICES": "/api/services",
+      "PRODUCTS": "/api/products",
+      "REFERENCES": "/api/references",
+      "CONTACT": "/api/contact",
+      "BLOG": "/api/blog",
+      "FAQ": "/api/faq",
+      "TEAM": "/api/team",
+      "TESTIMONIALS": "/api/testimonials",
+      "SETTINGS": "/api/settings",
+      "UPLOAD": "/api/upload",
+      "MEDIA": "/api/media",
+      "ADMIN_AUTH": "/api/admin-auth"
+    },
+    "methods": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    },
+    "status_codes": {
+      "OK": 200,
+      "CREATED": 201,
+      "NO_CONTENT": 204,
+      "BAD_REQUEST": 400,
+      "UNAUTHORIZED": 401,
+      "FORBIDDEN": 403,
+      "NOT_FOUND": 404,
+      "INTERNAL_SERVER_ERROR": 500
+    }
+  }
+} 

@@ -1,0 +1,48 @@
+name = "ozmevsim-website"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "out"
+
+# Global D1 Database binding
+[[d1_databases]]
+binding = "ozmevsim_d1"
+database_name = "ozmevsim-d1"
+database_id = "b8507b9b-4f7a-4acb-8fbf-ab1b09a14406"
+
+# Global KV namespace binding
+[[kv_namespaces]]
+binding = "SITE_DATA"
+id = "aa74f8e3bbab466e94f14bcc0bf0b5e2"
+
+# Global R2 bucket binding (for development)
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "ozmevsim-media"
+
+# Production environment
+[env.production]
+name = "ozmevsim-website"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Production D1 Database binding - ENABLED for dynamic functionality
+[[env.production.d1_databases]]
+binding = "ozmevsim_d1"
+database_name = "ozmevsim-d1"
+database_id = "b8507b9b-4f7a-4acb-8fbf-ab1b09a14406"
+
+# Production KV namespace binding
+[[env.production.kv_namespaces]]
+binding = "SITE_DATA"
+id = "aa74f8e3bbab466e94f14bcc0bf0b5e2"
+
+# Production R2 bucket binding
+[[env.production.r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "ozmevsim-media"
+
+# Production environment variables
+[env.production.vars]
+ENVIRONMENT = "production"
+SITE_URL = "https://ozmevsim.com"
+R2_BUCKET_NAME = "ozmevsim-media"
+R2_PUBLIC_URL = "https://pub-dabb1478396c4675b4a98a12c763aec5.r2.dev" 

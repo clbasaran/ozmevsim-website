@@ -1,0 +1,158 @@
+{
+  "logos": {
+    "main_logo": "/Mevsim-4.png",
+    "white_logo": "/logo-white.png",
+    "favicon": "/favicon.ico",
+    "favicon_16": "/favicon-16x16.png",
+    "site_manifest": "/site.webmanifest"
+  },
+  "hero_images": [
+    "/images/kombi-montaj-hero.jpg",
+    "https://images.unsplash.com/photo-1621905251918-48416bd8575a?ixlib=rb-4.0.3",
+    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3",
+    "https://images.unsplash.com/photo-1497440001374-f26997328c1b?ixlib=rb-4.0.3",
+    "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
+    "/uploads/SAMPLE/prasopchok-gVWHKo2D63g-unsplash.jpg"
+  ],
+  "product_images": {
+    "general": [
+      "/images/vaillant-kombi-product.jpg",
+      "/images/video-thumbnail.jpg"
+    ],
+    "products": [
+      "/images/products/ariston-kombi.jpg",
+      "/images/products/baymak-duotec.jpg",
+      "/images/products/baymak-elegant.jpg",
+      "/images/products/baymak-lunatec.jpg",
+      "/images/products/bosch-kombi.jpg",
+      "/images/products/buderus-gb122i2.jpg",
+      "/images/products/daikin-altherma.jpg",
+      "/images/products/mitsubishi-msz.jpg",
+      "/images/products/purmo-radiator.jpg",
+      "/images/products/vaillant-ecotec.jpg"
+    ]
+  },
+  "brand_logos": {
+    "uploads": [
+      "/uploads/brands/baymak-seeklogo.png",
+      "/uploads/brands/bosch-seeklogo.png",
+      "/uploads/brands/buderus.png",
+      "/uploads/brands/demirdokum.png",
+      "/uploads/brands/demirdöküm.png",
+      "/uploads/brands/eca-seeklogo.png",
+      "/uploads/brands/vaillant-new-seeklogo.png"
+    ]
+  },
+  "product_uploads": {
+    "klimalar": {
+      "demirdokum": [
+        "/uploads/klimalar/demirdokum/A420 Fl Salon Tİpi .png",
+        "/uploads/klimalar/demirdokum/demirdokum A7.png",
+        "/uploads/klimalar/demirdokum/demirdokum kion.png"
+      ]
+    },
+    "kombiler": {
+      "bosch": [
+        "/uploads/kombiler/bosch/codens 1200w.png",
+        "/uploads/kombiler/bosch/codens 2200i.png"
+      ],
+      "demirdokum": [
+        "/uploads/kombiler/demirdokum/ademiX.png",
+        "/uploads/kombiler/demirdokum/isomix.png",
+        "/uploads/kombiler/demirdokum/nitromix ioni hero.png"
+      ]
+    },
+    "products": {
+      "baymak": [
+        "/uploads/products/baymak/baymak-elegant-plus-klima.png",
+        "/uploads/products/baymak/baymak-lunatec-kombi.png"
+      ],
+      "bosch": [
+        "/uploads/products/bosch/bosch-condens-8300iw.png",
+        "/uploads/products/bosch/bosch-tronic-8500i.png"
+      ],
+      "buderus": [
+        "/uploads/products/buderus/buderus-logano-plus.png",
+        "/uploads/products/buderus/buderus-logatherm-wlw186i.png"
+      ],
+      "demirdokum": [
+        "/uploads/products/demirdokum/demirdokum-isi-pompasi.png",
+        "/uploads/products/demirdokum/demirdokum-nitromix-kombi.png"
+      ],
+      "eca": [
+        "/uploads/products/eca/eca-confeo-kombi.png",
+        "/uploads/products/eca/eca-mixer-banyo.png"
+      ],
+      "vaillant": [
+        "/uploads/products/vaillant/vaillant-ecotec-exclusive.png",
+        "/uploads/products/vaillant/vaillant-ecotec-plus.png"
+      ]
+    }
+  },
+  "pdf_documents": [
+    "/uploads/pdf/1-0-1-demirdoekuem-kombi-ailesi-brouerue-3019550.pdf",
+    "/uploads/pdf/1-0-5-vaillant-kombi-ailesi-krlml-foeyue-3020212.pdf",
+    "/uploads/pdf/o551031v272_Bosch_Condens_1200W_OnePager[6].pdf",
+    "/uploads/pdf/o567919v272_Bosch_Condens_2200iW_OnePager[33].pdf"
+  ],
+  "test_uploads": [
+    "/uploads/test/36cc0d3a-ac50-4d3d-b211-45101c5a917e.jpg"
+  ],
+  "sample_images": [
+    "/uploads/SAMPLE/prasopchok-gVWHKo2D63g-unsplash.jpg"
+  ],
+  "seo_images": {
+    "og_image": "/images/og-image.jpg",
+    "twitter_image": "/twitter-image.jpg",
+    "schema_logo": "/images/logo.png"
+  },
+  "certificate_images": [
+    "/certificates/tse.jpg",
+    "/certificates/iso.jpg",
+    "/certificates/bosch.jpg"
+  ],
+  "reference_images": [
+    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600",
+    "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600",
+    "https://images.unsplash.com/photo-1555636222-cae831e670b3?w=600"
+  ],
+  "testimonial_avatars": [
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
+  ],
+  "icons": {
+    "social_media_emojis": {
+      "facebook": "📘",
+      "instagram": "📷",
+      "linkedin": "💼",
+      "twitter": "🐦",
+      "youtube": "📺"
+    }
+  },
+  "upload_directories": {
+    "brands": "/uploads/brands/",
+    "products": "/uploads/products/",
+    "klimalar": "/uploads/klimalar/",
+    "kombiler": "/uploads/kombiler/",
+    "pdf": "/uploads/pdf/",
+    "test": "/uploads/test/",
+    "sample": "/uploads/SAMPLE/",
+    "certificates": "/certificates/"
+  },
+  "image_formats": {
+    "allowed_types": ["image/jpeg", "image/png", "image/gif", "image/webp"],
+    "max_file_size": "10MB",
+    "recommended_sizes": {
+      "hero_images": "1920x1080",
+      "product_images": "800x600",
+      "thumbnails": "300x300",
+      "avatars": "150x150",
+      "logos": "200x100"
+    }
+  },
+  "cloudflare_r2_config": {
+    "cors_file": "r2-cors.json",
+    "proxy_endpoint": "/api/r2-proxy",
+    "upload_endpoint": "/api/upload-r2"
+  }
+} 

@@ -1,0 +1,338 @@
+{
+  "migration_overview": {
+    "project_name": "Öz Mevsim - Static to Dynamic Migration",
+    "description": "Tüm static/hardcoded verilerin database'e taşınması ve admin panelden yönetilebilir hale getirilmesi",
+    "timeline": "2-3 hafta",
+    "phases": 5,
+    "priority": "High"
+  },
+  "current_status": {
+    "static_data_identified": true,
+    "database_schema_exists": true,
+    "api_endpoints_partial": true,
+    "admin_panel_basic": true,
+    "frontend_static": true
+  },
+  "phase_1": {
+    "name": "Database Schema Enhancement",
+    "duration": "2-3 days",
+    "description": "Mevcut database schema'yı genişletip yeni tablolar ekleme",
+    "tasks": [
+      {
+        "id": "DB-001",
+        "title": "Site Settings Tablosu",
+        "description": "Genel site ayarları için tablo oluştur",
+        "sql": "CREATE TABLE site_settings (id, key, value, type, category, description, created_at, updated_at)",
+        "priority": "High"
+      },
+      {
+        "id": "DB-002", 
+        "title": "Dynamic Content Tablosu",
+        "description": "Hero slides, testimonials, services için tablo",
+        "sql": "CREATE TABLE dynamic_content (id, type, title, content, meta, status, sort_order, created_at, updated_at)",
+        "priority": "High"
+      },
+      {
+        "id": "DB-003",
+        "title": "Menu System Tablosu",
+        "description": "Dynamic menü sistemi",
+        "sql": "CREATE TABLE menu_items (id, parent_id, title, url, icon, position, status, created_at, updated_at)",
+        "priority": "Medium"
+      },
+      {
+        "id": "DB-004",
+        "title": "Content Blocks Tablosu", 
+        "description": "Page builder için content blocks",
+        "sql": "CREATE TABLE content_blocks (id, page_id, type, content, settings, order, status, created_at, updated_at)",
+        "priority": "Medium"
+      },
+      {
+        "id": "DB-005",
+        "title": "Media Library Tablosu",
+        "description": "Medya dosyaları yönetimi",
+        "sql": "CREATE TABLE media_library (id, filename, original_name, path, type, size, alt_text, description, created_at, updated_at)",
+        "priority": "High"
+      },
+      {
+        "id": "DB-006",
+        "title": "Translations Tablosu",
+        "description": "Çoklu dil desteği",
+        "sql": "CREATE TABLE translations (id, key, language, value, context, created_at, updated_at)",
+        "priority": "Low"
+      }
+    ]
+  },
+  "phase_2": {
+    "name": "Data Migration Scripts",
+    "duration": "1-2 days",
+    "description": "Static verileri database'e aktarma",
+    "tasks": [
+      {
+        "id": "MIG-001",
+        "title": "Hero Slides Migration",
+        "description": "Static hero slides verilerini database'e aktar",
+        "source": "data-analysis/static-content.json",
+        "target": "hero_slides table",
+        "priority": "High"
+      },
+      {
+        "id": "MIG-002",
+        "title": "Services Migration", 
+        "description": "Hizmetler verilerini database'e aktar",
+        "source": "src/data/default-data.ts",
+        "target": "services table",
+        "priority": "High"
+      },
+      {
+        "id": "MIG-003",
+        "title": "Contact Info Migration",
+        "description": "İletişim bilgilerini site_settings'e aktar",
+        "source": "config files",
+        "target": "site_settings table",
+        "priority": "High"
+      },
+      {
+        "id": "MIG-004",
+        "title": "Menu Items Migration",
+        "description": "Static menü öğelerini database'e aktar", 
+        "source": "Header components",
+        "target": "menu_items table",
+        "priority": "Medium"
+      },
+      {
+        "id": "MIG-005",
+        "title": "Media Files Migration",
+        "description": "Mevcut medya dosyalarını katalogla",
+        "source": "/uploads directory",
+        "target": "media_library table",
+        "priority": "Medium"
+      }
+    ]
+  },
+  "phase_3": {
+    "name": "API Enhancement",
+    "duration": "3-4 days",
+    "description": "Dynamic veri için API endpoints oluşturma",
+    "tasks": [
+      {
+        "id": "API-001",
+        "title": "Settings API",
+        "endpoints": [
+          "GET /api/settings",
+          "GET /api/settings/:key",
+          "PUT /api/settings/:key",
+          "POST /api/settings/bulk"
+        ],
+        "priority": "High"
+      },
+      {
+        "id": "API-002",
+        "title": "Content API",
+        "endpoints": [
+          "GET /api/content/:type",
+          "GET /api/content/:type/:id",
+          "POST /api/content/:type",
+          "PUT /api/content/:type/:id",
+          "DELETE /api/content/:type/:id"
+        ],
+        "priority": "High"
+      },
+      {
+        "id": "API-003",
+        "title": "Menu API",
+        "endpoints": [
+          "GET /api/menus/:location",
+          "POST /api/menus",
+          "PUT /api/menus/:id",
+          "DELETE /api/menus/:id",
+          "PUT /api/menus/reorder"
+        ],
+        "priority": "Medium"
+      },
+      {
+        "id": "API-004",
+        "title": "Page Builder API",
+        "endpoints": [
+          "GET /api/pages/:slug",
+          "GET /api/pages/:slug/blocks",
+          "PUT /api/pages/:slug/blocks"
+        ],
+        "priority": "Medium"
+      },
+      {
+        "id": "API-005",
+        "title": "Media API Enhancement",
+        "endpoints": [
+          "GET /api/media",
+          "POST /api/media/upload",
+          "DELETE /api/media/:id",
+          "PUT /api/media/:id"
+        ],
+        "priority": "High"
+      }
+    ]
+  },
+  "phase_4": {
+    "name": "Admin Panel CMS Modules",
+    "duration": "5-7 days",
+    "description": "Admin panele CMS modülleri ekleme",
+    "tasks": [
+      {
+        "id": "ADMIN-001",
+        "title": "Site Settings Module",
+        "components": [
+          "GeneralSettings.tsx",
+          "ContactSettings.tsx", 
+          "SocialSettings.tsx",
+          "SEOSettings.tsx",
+          "EmailSettings.tsx"
+        ],
+        "priority": "High"
+      },
+      {
+        "id": "ADMIN-002",
+        "title": "Content Manager Module",
+        "components": [
+          "PageBuilder/",
+          "SliderManager/",
+          "MenuManager/",
+          "MediaLibrary/",
+          "WidgetManager/"
+        ],
+        "priority": "High"
+      },
+      {
+        "id": "ADMIN-003",
+        "title": "Dynamic Forms Builder",
+        "components": [
+          "FormElements/",
+          "FormDesigner.tsx",
+          "FormSettings.tsx",
+          "SubmissionViewer.tsx"
+        ],
+        "priority": "Medium"
+      },
+      {
+        "id": "ADMIN-004",
+        "title": "Media Library Interface",
+        "features": [
+          "Upload multiple files",
+          "Drag & drop",
+          "Image editing",
+          "Folder organization",
+          "Search & filter"
+        ],
+        "priority": "High"
+      },
+      {
+        "id": "ADMIN-005",
+        "title": "Menu Manager",
+        "features": [
+          "Drag & drop reordering",
+          "Nested menu support",
+          "Icon selection",
+          "URL validation",
+          "Preview mode"
+        ],
+        "priority": "Medium"
+      }
+    ]
+  },
+  "phase_5": {
+    "name": "Frontend Dynamic Integration",
+    "duration": "4-5 days", 
+    "description": "Frontend component'lerini dynamic hale getirme",
+    "tasks": [
+      {
+        "id": "FE-001",
+        "title": "Dynamic Component Loader",
+        "description": "API'den gelen veriyi render eden genel component",
+        "file": "components/common/DynamicContent/DynamicContent.tsx",
+        "priority": "High"
+      },
+      {
+        "id": "FE-002",
+        "title": "Header Dynamic Integration",
+        "description": "Header menüsünü API'den çekme",
+        "file": "components/common/Header/",
+        "changes": "useApi hook integration",
+        "priority": "High"
+      },
+      {
+        "id": "FE-003",
+        "title": "Hero Section Dynamic",
+        "description": "Hero slides'ı tamamen dynamic yap",
+        "file": "components/sections/HeroSection.tsx",
+        "changes": "Remove static data, use API",
+        "priority": "High"
+      },
+      {
+        "id": "FE-004",
+        "title": "Footer Dynamic Integration",
+        "description": "Footer bilgilerini settings'ten çek",
+        "file": "components/common/Footer/",
+        "changes": "Settings API integration",
+        "priority": "Medium"
+      },
+      {
+        "id": "FE-005",
+        "title": "Dynamic Page Renderer",
+        "description": "Slug-based dynamic page rendering",
+        "file": "app/[...slug]/page.tsx",
+        "features": [
+          "SEO meta tags",
+          "Block rendering",
+          "404 handling"
+        ],
+        "priority": "Medium"
+      }
+    ]
+  },
+  "testing_phase": {
+    "name": "Testing & Validation",
+    "duration": "2-3 days",
+    "tasks": [
+      "API endpoint testing",
+      "Admin panel CRUD operations",
+      "Frontend dynamic rendering",
+      "Data integrity validation",
+      "Performance benchmarking",
+      "SEO validation",
+      "Mobile responsiveness",
+      "Error handling"
+    ]
+  },
+  "deployment_checklist": [
+    "Database migrations executed",
+    "Static data migrated successfully",
+    "API endpoints functional",
+    "Admin panel fully operational", 
+    "Frontend rendering dynamic data",
+    "Cache system configured",
+    "Backup system active",
+    "Error monitoring enabled",
+    "Performance optimized",
+    "SEO tags dynamic"
+  ],
+  "rollback_plan": {
+    "database_backup": "Full database backup before migration",
+    "code_backup": "Git branch for rollback",
+    "static_fallback": "Keep static data as fallback",
+    "monitoring": "Real-time error monitoring",
+    "quick_rollback": "Automated rollback script"
+  },
+  "success_metrics": {
+    "admin_efficiency": "Content update time < 2 minutes",
+    "page_load_speed": "< 3 seconds",
+    "api_response_time": "< 500ms",
+    "error_rate": "< 1%",
+    "user_satisfaction": "> 95%"
+  },
+  "post_migration": {
+    "content_training": "Admin kullanıcı eğitimi",
+    "documentation": "Kullanım kılavuzu hazırlama",
+    "monitoring_setup": "Performance monitoring kurulumu",
+    "backup_schedule": "Otomatik yedekleme planı",
+    "maintenance_plan": "Düzenli bakım planı"
+  }
+} 

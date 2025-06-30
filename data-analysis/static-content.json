@@ -1,0 +1,263 @@
+{
+  "hero_slides": [
+    {
+      "id": 1,
+      "title": "Ankara'nın En Güvenilir",
+      "subtitle": "Kombi ve Klima Servisi",
+      "description": "25 yıllık deneyimle ev ve işyerlerinizde konfor yaratıyor, enerji tasarrufu sağlıyoruz. 7/24 servis hizmeti.",
+      "backgroundImage": "/images/kombi-montaj-hero.jpg",
+      "stats": [
+        { "value": "25+", "label": "Yıl Deneyim" },
+        { "value": "10,000+", "label": "Mutlu Müşteri" },
+        { "value": "7/24", "label": "Servis Hizmeti" },
+        { "value": "%98", "label": "Müşteri Memnuniyeti" }
+      ],
+      "primaryCTA": {
+        "text": "Ücretsiz Keşif",
+        "href": "/iletisim"
+      },
+      "secondaryCTA": {
+        "text": "Ürünlerimiz",
+        "href": "/urunler"
+      },
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "title": "Profesyonel Kombi",
+      "subtitle": "Montaj ve Servis Hizmeti",
+      "description": "Uzman ekibimizle en kaliteli markaların montajını yapıyor, düzenli bakım hizmeti sunuyoruz.",
+      "backgroundImage": "/images/kombi-montaj-hero.jpg",
+      "stats": [
+        { "value": "5,000+", "label": "Kombi Montajı" },
+        { "value": "24", "label": "Saat Servis" },
+        { "value": "15", "label": "Marka Yetkili" },
+        { "value": "2", "label": "Yıl Garanti" }
+      ],
+      "primaryCTA": {
+        "text": "Teklif Al",
+        "href": "/iletisim"
+      },
+      "secondaryCTA": {
+        "text": "Markalar",
+        "href": "/urunler"
+      },
+      "isActive": true
+    }
+  ],
+  "services": [
+    {
+      "id": 1,
+      "title": "Kombi Montajı",
+      "description": "Profesyonel ekibimizle tüm marka kombilerin montajını gerçekleştiriyoruz.",
+      "icon": "fire",
+      "features": ["Uzman Montaj", "2 Yıl Garanti", "Ücretsiz Keşif"],
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "title": "Kombi Servisi",
+      "description": "7/24 kombi arıza servisi ile acil durumlarınızda yanınızdayız.",
+      "icon": "wrench",
+      "features": ["7/24 Servis", "Hızlı Müdahale", "Orijinal Yedek Parça"],
+      "isActive": true
+    },
+    {
+      "id": 3,
+      "title": "Klima Montajı",
+      "description": "Split, multi split ve VRF klima sistemlerinin profesyonel montajı.",
+      "icon": "snowflake",
+      "features": ["Tüm Markalar", "Profesyonel Montaj", "Garanti"],
+      "isActive": true
+    }
+  ],
+  "testimonials": [
+    {
+      "id": 1,
+      "name": "Ahmet Yılmaz",
+      "title": "Ev Sahibi",
+      "company": "Bireysel",
+      "location": "Çankaya, Ankara",
+      "rating": 5,
+      "comment": "Kombi montajımızı çok profesyonel bir şekilde yaptılar. Hem hızlı hem de kaliteli bir hizmet aldık.",
+      "project": "Kombi Montajı",
+      "date": "2024-01-15",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      "projectType": "residential",
+      "verified": true
+    },
+    {
+      "id": 2,
+      "name": "Zeynep Kaya",
+      "title": "Proje Yöneticisi",
+      "company": "ABC İnşaat",
+      "location": "Keçiören, Ankara",
+      "rating": 5,
+      "comment": "200 daireli projemizde VRF klima sistemlerini başarıyla kurdular. Zamanında ve bütçe dahilinde tamamlandı.",
+      "project": "VRF Klima Sistemi",
+      "date": "2023-12-20",
+      "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "projectType": "commercial",
+      "verified": true
+    }
+  ],
+  "references": [
+    {
+      "id": 1,
+      "title": "Luxury Residence VRF Klima Sistemi",
+      "description": "Lüks konut projesinde 200 daireli komplekste VRF klima sistemlerinin kurulumu ve bakımı.",
+      "client": "Luxury Residence",
+      "location": "Ankara, Çayyolu",
+      "category": "Konut",
+      "completed_date": "2023-12-15",
+      "image": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600",
+      "status": "active",
+      "featured": true,
+      "rating": 5
+    },
+    {
+      "id": 2,
+      "title": "Çankaya Belediyesi Hizmet Binası",
+      "description": "Belediye hizmet binasında kombi ve radyatör sistemi kurulumu.",
+      "client": "Çankaya Belediyesi",
+      "location": "Ankara, Çankaya",
+      "category": "Kamu",
+      "completed_date": "2023-12-20",
+      "image": "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600",
+      "status": "active",
+      "featured": false,
+      "rating": 4
+    }
+  ],
+  "company_info": {
+    "name": "Öz Mevsim Isı Sistemleri Mühendislik",
+    "slogan": "Güvenilir Isı Çözümleri",
+    "description": "25 yıllık deneyimle Ankara'da kombi, klima ve doğalgaz sistemleri kurulum hizmetleri sunuyoruz. Müşteri memnuniyeti odaklı yaklaşımımızla kaliteli ve güvenilir çözümler üretiyoruz.",
+    "logo": "/Mevsim-4.png",
+    "favicon": "/favicon.ico",
+    "foundedYear": "1998",
+    "experience": "25+",
+    "employeeCount": "45+",
+    "projectCount": "10.000+",
+    "customerCount": "2.500+",
+    "satisfactionRate": "%98"
+  },
+  "contact_info": {
+    "phone": "+90 312 357 0600",
+    "email": "info@ozmevsim.com",
+    "address": "Kuşcağız Mahallesi, Sanatoryum Caddesi No:221/A, Keçiören, Ankara",
+    "workingHours": "Pazartesi - Cumartesi: 08:00 - 18:00",
+    "emergencyPhone": "+90 532 446 7367",
+    "whatsapp": "+90 532 446 7367",
+    "fax": "+90 212 555 0124",
+    "website": "www.ozmevsim.com"
+  },
+  "social_media": {
+    "facebook": "https://facebook.com/ozmevsim",
+    "instagram": "https://instagram.com/ozmevsim",
+    "twitter": "https://twitter.com/ozmevsim",
+    "linkedin": "https://linkedin.com/company/ozmevsim",
+    "youtube": "https://youtube.com/ozmevsim",
+    "tiktok": "https://tiktok.com/@ozmevsim"
+  },
+  "certifications": [
+    {
+      "id": 1,
+      "name": "TSE Sertifikası",
+      "issuer": "Türk Standartları Enstitüsü",
+      "date": "2020-01-15",
+      "validUntil": "2025-01-15",
+      "certificateNumber": "TSE-2020-001",
+      "image": "/certificates/tse.jpg",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "ISO 9001:2015",
+      "issuer": "Kalite Yönetim Sistemi",
+      "date": "2019-06-20",
+      "validUntil": "2024-06-20",
+      "certificateNumber": "ISO-9001-2019",
+      "image": "/certificates/iso.jpg",
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "Yetkili Servis Belgesi",
+      "issuer": "Bosch Termoteknik",
+      "date": "2018-03-10",
+      "validUntil": "2024-03-10",
+      "certificateNumber": "BOSCH-YS-2018",
+      "image": "/certificates/bosch.jpg",
+      "active": true
+    }
+  ],
+  "locations": [
+    {
+      "id": 1,
+      "name": "Ana Merkez",
+      "address": "Kuşcağız Mahallesi, Sanatoryum Caddesi No:221/A, Keçiören, Ankara",
+      "phone": "+90 312 357 0600",
+      "email": "info@ozmevsim.com",
+      "workingHours": "Pazartesi - Cumartesi: 08:00 - 18:00",
+      "coordinates": { "lat": 39.9334, "lng": 32.8597 },
+      "isPrimary": true,
+      "isActive": true
+    }
+  ],
+  "faq": [
+    {
+      "id": 1,
+      "question": "Kombi montajı ne kadar sürer?",
+      "answer": "Standart kombi montajı 4-6 saat arasında tamamlanır. Kompleks tesisatlar için süre uzayabilir.",
+      "category": "Kombi",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "question": "Hangi markaların yetkili servisiyiz?",
+      "answer": "Vaillant, Bosch, Demirdöküm, Baymak, ECA ve Buderus markalarının yetkili servisiyiz.",
+      "category": "Servis",
+      "order": 2,
+      "isActive": true
+    }
+  ],
+  "schema_markup": {
+    "organization": {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Öz Mevsim Isı Sistemleri Mühendislik",
+      "url": "https://ozmevsim.com",
+      "logo": "https://ozmevsim.com/images/logo.png",
+      "description": "25 yıllık deneyimle Ankara'da kombi, klima, doğalgaz sistemleri kurulum hizmetleri.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Kuşcağız Mahallesi Sanatoryum Caddesi No:221/A",
+        "addressLocality": "Keçiören, Ankara",
+        "addressCountry": "TR"
+      },
+      "telephone": "+90 312 357 0600",
+      "email": "info@ozmevsim.com",
+      "sameAs": [
+        "https://www.facebook.com/ozmevsim",
+        "https://www.instagram.com/ozmevsim",
+        "https://www.linkedin.com/company/ozmevsim",
+        "https://twitter.com/ozmevsim"
+      ],
+      "foundingDate": "1999",
+      "numberOfEmployees": "50",
+      "areaServed": {
+        "@type": "City",
+        "name": "Ankara"
+      },
+      "serviceType": [
+        "Kombi Montaj",
+        "Klima Montaj",
+        "Doğalgaz Tesisatı",
+        "Mekanik Tesisat",
+        "Enerji Verimliliği"
+      ]
+    }
+  }
+} 
