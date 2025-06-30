@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'edge'; // Re-enable edge runtime for D1 compatibility
 
 // D1 Database helper functions
-function getDB(context: any) {
-  if (context?.env?.ozmevsim_d1) {
-    return context.env.ozmevsim_d1;
+function getDB(env: any) {
+  if (env?.ozmevsim_d1) {
+    return env.ozmevsim_d1;
   }
   
   // Fallback to in-memory products for development
@@ -58,11 +58,15 @@ const fallbackProducts = [
 ];
 
 // GET - Retrieve products (all or by ID)
-export async function GET(request: NextRequest, context: any) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const db = getDB(context);
+    
+    // Access environment variables from the request's context
+    // @ts-ignore - Cloudflare Pages specific binding
+    const env = request.cf?.env || process.env;
+    const db = getDB(env);
 
     if (!db) {
       // Use fallback data when D1 not available
@@ -126,10 +130,14 @@ export async function GET(request: NextRequest, context: any) {
 }
 
 // POST - Create new product
-export async function POST(request: NextRequest, context: any) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const db = getDB(context);
+    
+    // Access environment variables from the request's context
+    // @ts-ignore - Cloudflare Pages specific binding
+    const env = request.cf?.env || process.env;
+    const db = getDB(env);
     
     console.log('📝 Creating new product:', body.title);
 
@@ -191,11 +199,15 @@ export async function POST(request: NextRequest, context: any) {
 }
 
 // PUT - Update existing product
-export async function PUT(request: NextRequest, context: any) {
+export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
-    const db = getDB(context);
+    
+    // Access environment variables from the request's context
+    // @ts-ignore - Cloudflare Pages specific binding
+    const env = request.cf?.env || process.env;
+    const db = getDB(env);
 
     if (!id) {
       return NextResponse.json({
@@ -255,11 +267,15 @@ export async function PUT(request: NextRequest, context: any) {
 }
 
 // DELETE - Delete product
-export async function DELETE(request: NextRequest, context: any) {
+export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const db = getDB(context);
+    
+    // Access environment variables from the request's context
+    // @ts-ignore - Cloudflare Pages specific binding
+    const env = request.cf?.env || process.env;
+    const db = getDB(env);
 
     if (!id) {
       return NextResponse.json({

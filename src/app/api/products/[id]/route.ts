@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'edge'; // Re-enable edge runtime for D1 compatibility
 
 // D1 Database helper functions
-function getDB(context: any) {
-  if (context?.env?.ozmevsim_d1) {
-    return context.env.ozmevsim_d1;
+function getDB(env: any) {
+  if (env?.ozmevsim_d1) {
+    return env.ozmevsim_d1;
   }
   
   // Fallback to in-memory products for development
@@ -60,12 +60,15 @@ const fallbackProducts = [
 // GET - Get individual product by ID
 export async function GET(
   request: NextRequest,
-  context: any
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const id = parseInt(params.id);
-    const db = getDB(context);
+    
+    // Access environment variables from the request's context
+    // @ts-ignore - Cloudflare Pages specific binding
+    const env = request.cf?.env || process.env;
+    const db = getDB(env);
     
     if (isNaN(id)) {
       return NextResponse.json({
@@ -114,7 +117,7 @@ export async function GET(
       data: product
     });
   } catch (error) {
-    console.error(`❌ Error fetching product ${context?.params?.id}:`, error);
+    console.error(`❌ Error fetching product ${params?.id}:`, error);
     return NextResponse.json({
       success: false,
       error: 'Internal server error'
@@ -125,12 +128,15 @@ export async function GET(
 // PUT - Update individual product
 export async function PUT(
   request: NextRequest,
-  context: any
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const id = parseInt(params.id);
-    const db = getDB(context);
+    
+    // Access environment variables from the request's context
+    // @ts-ignore - Cloudflare Pages specific binding
+    const env = request.cf?.env || process.env;
+    const db = getDB(env);
     
     if (isNaN(id)) {
       return NextResponse.json({
@@ -184,7 +190,7 @@ export async function PUT(
       message: 'Product updated successfully'
     });
   } catch (error) {
-    console.error(`❌ Error updating product ${context?.params?.id}:`, error);
+    console.error(`❌ Error updating product ${params?.id}:`, error);
     return NextResponse.json({
       success: false,
       error: 'Failed to update product'
@@ -195,12 +201,15 @@ export async function PUT(
 // DELETE - Delete individual product
 export async function DELETE(
   request: NextRequest,
-  context: any
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const id = parseInt(params.id);
-    const db = getDB(context);
+    
+    // Access environment variables from the request's context
+    // @ts-ignore - Cloudflare Pages specific binding
+    const env = request.cf?.env || process.env;
+    const db = getDB(env);
     
     if (isNaN(id)) {
       return NextResponse.json({
@@ -234,7 +243,7 @@ export async function DELETE(
       message: 'Product deleted successfully'
     });
   } catch (error) {
-    console.error(`❌ Error deleting product ${context?.params?.id}:`, error);
+    console.error(`❌ Error deleting product ${params?.id}:`, error);
     return NextResponse.json({
       success: false,
       error: 'Failed to delete product'
