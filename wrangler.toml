@@ -6,7 +6,7 @@ pages_build_output_dir = "out"
 [[d1_databases]]
 binding = "ozmevsim_d1"
 database_name = "ozmevsim-d1"
-database_id = "b8507b9b-4f7a-4acb-8fbf-ab1b09a14406"
+database_id = "2961132c-19c4-47fa-9f19-fc8c79c2bcfa"
 
 # Global KV namespace binding
 [[kv_namespaces]]
@@ -28,7 +28,7 @@ compatibility_flags = ["nodejs_compat"]
 [[env.production.d1_databases]]
 binding = "ozmevsim_d1"
 database_name = "ozmevsim-d1"
-database_id = "b8507b9b-4f7a-4acb-8fbf-ab1b09a14406"
+database_id = "2961132c-19c4-47fa-9f19-fc8c79c2bcfa"
 
 # Production KV namespace binding
 [[env.production.kv_namespaces]]
